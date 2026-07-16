@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { FileText, Search, Filter, PlayCircle, Globe, ArrowRight, Activity, Calendar } from "lucide-react";
+import { FileText, Search, Filter, PlayCircle, Globe, ArrowRight, Activity, Calendar, Trash2 } from "lucide-react";
 import api from "../services/api.js";
 
 export default function ContentLibrary() {
@@ -10,7 +10,7 @@ export default function ContentLibrary() {
   const [type, setType] = useState("");
   const [status, setStatus] = useState("");
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ["content-library", search, type, status],
     queryFn: async () => {
       const response = await api.get("/api/content", {
@@ -19,6 +19,24 @@ export default function ContentLibrary() {
       return response.data.data;
     }
   });
+
+  const [deletingId, setDeletingId] = useState(null);
+
+  const handleDelete = async (e, itemId) => {
+    e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this content item and its AI analysis?")) {
+      return;
+    }
+    setDeletingId(itemId);
+    try {
+      await api.delete(`/api/content/${itemId}`);
+      refetch();
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to delete item");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const contentItems = data || [];
 
@@ -112,20 +130,33 @@ export default function ContentLibrary() {
                     </span>
                   )}
 
-                  {/* AI Status tag */}
-                  <span
-                    className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${
-                      item.processedStatus === "completed"
-                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                        : item.processedStatus === "processing"
-                          ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                          : item.processedStatus === "failed"
-                            ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
-                            : "bg-zinc-800/40 text-zinc-400 border-zinc-700/50"
-                    }`}
-                  >
-                    {item.processedStatus}
-                  </span>
+                  {/* Status & Actions Container */}
+                  <div className="flex items-center gap-2">
+                    {/* AI Status tag */}
+                    <span
+                      className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide border ${
+                        item.processedStatus === "completed"
+                          ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                          : item.processedStatus === "processing"
+                            ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                            : item.processedStatus === "failed"
+                              ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                              : "bg-zinc-800/40 text-zinc-400 border-zinc-700/50"
+                      }`}
+                    >
+                      {item.processedStatus}
+                    </span>
+
+                    {/* Trash Delete button */}
+                    <button
+                      onClick={(e) => handleDelete(e, item._id || item.id)}
+                      disabled={deletingId === (item._id || item.id)}
+                      className="p-1.5 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 disabled:opacity-50 transition-all cursor-pointer"
+                      title="Delete Content Item"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-1">

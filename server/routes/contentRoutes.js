@@ -10,4 +10,7 @@ router.get("/", protect, contentController.getAll);
 // Get specific article details + AI summary analysis
 router.get("/:id", protect, contentController.getDetails);
 
+// Delete specific article and analysis
+router.delete("/:id", protect, contentController.deleteItem);
+
 export default router;

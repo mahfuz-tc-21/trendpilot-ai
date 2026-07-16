@@ -101,6 +101,43 @@ class ContentController {
       next(error);
     }
   }
+
+  /**
+   * Delete a content item and its associated analysis (Summary and Recommendation).
+   */
+  async deleteItem(req, res, next) {
+    try {
+      const userId = req.user.userId;
+      const contentId = req.params.id;
+
+      const contentItem = await ContentItem.findById(contentId);
+      if (!contentItem) {
+        const error = new Error("Content item not found");
+        error.status = 404;
+        throw error;
+      }
+
+      if (contentItem.userId && contentItem.userId.toString() !== userId.toString()) {
+        const error = new Error("Forbidden: Access denied");
+        error.status = 403;
+        throw error;
+      }
+
+      // Delete associated summary and recommendation
+      await Summary.deleteMany({ contentId, userId });
+      await Recommendation.deleteMany({ contentId, userId });
+
+      // Delete the content item itself
+      await ContentItem.findByIdAndDelete(contentId);
+
+      return res.status(200).json({
+        success: true,
+        message: "Content item and associated analysis deleted successfully"
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default new ContentController();
