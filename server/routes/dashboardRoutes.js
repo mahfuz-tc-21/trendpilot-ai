@@ -10,6 +10,18 @@ router.get("/stats", protect, dashboardController.getStats);
 // Get trend analytics (top topics, keywords, categories)
 router.get("/trends", protect, dashboardController.getTrends);
 
+// Get calculated trending topics from MongoDB
+router.get("/trends/topics", protect, dashboardController.getTrendingTopics);
+
+// Get detailed trend analysis parameters
+router.get("/trends/detail", protect, dashboardController.getTrendDetail);
+
+// Generate creator master package for a topic
+router.post("/trends/generate-all", protect, dashboardController.generateEverything);
+
+// Beat competitor strategy
+router.post("/trends/beat-competitor", protect, dashboardController.beatCompetitor);
+
 // Get latest ingested content items
 router.get("/recent-content", protect, dashboardController.getRecentContent);
 

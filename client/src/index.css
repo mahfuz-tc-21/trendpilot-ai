@@ -87,6 +87,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
@@ -115,7 +116,8 @@
   background-color: rgba(244, 244, 245, 0.5) !important;
 }
 
-.light .bg-zinc-955\/40, .light .bg-zinc-950\/60 {
+.light .bg-zinc-955\/40,
+.light .bg-zinc-950\/60 {
   background-color: rgba(244, 244, 245, 0.7) !important;
 }
 
@@ -207,14 +209,16 @@
 .light span.text-zinc-400,
 .light p.text-zinc-400,
 .light div.text-zinc-400 {
-  color: #3f3f46 !important; /* Zinc-700 */
+  color: #3f3f46 !important;
+  /* Zinc-700 */
 }
 
 .light .text-zinc-500,
 .light span.text-zinc-500,
 .light p.text-zinc-500,
 .light div.text-zinc-500 {
-  color: #52525b !important; /* Zinc-600 */
+  color: #52525b !important;
+  /* Zinc-600 */
 }
 
 /* Restore white text color for primary buttons and active items */
@@ -273,13 +277,16 @@
   --tw-gradient-to: #52525b !important;
 }
 
-.light input, .light textarea, .light select {
+.light input,
+.light textarea,
+.light select {
   background-color: #ffffff !important;
   color: #18181b !important;
   border-color: #d4d4d8 !important;
 }
 
-.light input::placeholder, .light textarea::placeholder {
+.light input::placeholder,
+.light textarea::placeholder {
   color: #a1a1aa !important;
 }
 

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { 
-  Globe, Menu, X, Bell, Search, LogOut, LayoutDashboard, 
-  TrendingUp, FileText, Lightbulb, PenTool, BarChart3, Settings, 
+import {
+  Globe, Menu, X, Bell, Search, LogOut, LayoutDashboard,
+  TrendingUp, FileText, Lightbulb, PenTool, BarChart3, Settings,
   ChevronDown, ChevronRight, PlayCircle, Compass
 } from "lucide-react";
 import { useAuthStore } from "../services/authStore.js";
@@ -41,10 +41,9 @@ export default function DashboardLayout() {
             <NavLink
               to="/"
               className={({ isActive }) =>
-                `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
-                  isActive
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/10"
-                    : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"
+                `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${isActive
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/10"
+                  : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"
                 }`
               }
             >
@@ -55,10 +54,9 @@ export default function DashboardLayout() {
             <NavLink
               to="/trends"
               className={({ isActive }) =>
-                `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
-                  isActive
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/10"
-                    : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"
+                `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${isActive
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/10"
+                  : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"
                 }`
               }
             >
@@ -69,10 +67,9 @@ export default function DashboardLayout() {
             <NavLink
               to="/library"
               className={({ isActive }) =>
-                `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
-                  isActive
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/10"
-                    : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"
+                `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${isActive
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/10"
+                  : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"
                 }`
               }
             >
@@ -83,10 +80,9 @@ export default function DashboardLayout() {
             <NavLink
               to="/recommendations"
               className={({ isActive }) =>
-                `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
-                  isActive
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/10"
-                    : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"
+                `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${isActive
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/10"
+                  : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"
                 }`
               }
             >
@@ -97,10 +93,9 @@ export default function DashboardLayout() {
             <NavLink
               to="/youtube-studio"
               className={({ isActive }) =>
-                `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
-                  isActive
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/10"
-                    : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"
+                `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${isActive
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/10"
+                  : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"
                 }`
               }
             >
@@ -171,10 +166,9 @@ export default function DashboardLayout() {
             <NavLink
               to="/competitors"
               className={({ isActive }) =>
-                `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
-                  isActive
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/10"
-                    : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"
+                `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${isActive
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/10"
+                  : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"
                 }`
               }
             >
@@ -185,10 +179,9 @@ export default function DashboardLayout() {
             <NavLink
               to="/sources"
               className={({ isActive }) =>
-                `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
-                  isActive
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/10"
-                    : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"
+                `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${isActive
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/10"
+                  : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"
                 }`
               }
             >
@@ -199,10 +192,9 @@ export default function DashboardLayout() {
             <NavLink
               to="/analytics"
               className={({ isActive }) =>
-                `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
-                  isActive
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/10"
-                    : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"
+                `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${isActive
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/10"
+                  : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"
                 }`
               }
             >
@@ -213,10 +205,9 @@ export default function DashboardLayout() {
             <NavLink
               to="/settings"
               className={({ isActive }) =>
-                `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
-                  isActive
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/10"
-                    : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"
+                `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${isActive
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/10"
+                  : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"
                 }`
               }
             >
@@ -261,9 +252,8 @@ export default function DashboardLayout() {
 
       {/* Mobile Drawer Menu */}
       <aside
-        className={`fixed inset-y-0 left-0 z-55 w-64 transform bg-zinc-900 border-r border-zinc-800 p-5 space-y-6 transition-transform duration-300 md:hidden ${
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-55 w-64 transform bg-zinc-900 border-r border-zinc-800 p-5 space-y-6 transition-transform duration-300 md:hidden ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -285,10 +275,9 @@ export default function DashboardLayout() {
             to="/"
             onClick={() => setIsMobileMenuOpen(false)}
             className={({ isActive }) =>
-              `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${
-                isActive
-                  ? "bg-indigo-600 text-white"
-                  : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+              `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${isActive
+                ? "bg-indigo-600 text-white"
+                : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
               }`
             }
           >
@@ -299,10 +288,9 @@ export default function DashboardLayout() {
             to="/trends"
             onClick={() => setIsMobileMenuOpen(false)}
             className={({ isActive }) =>
-              `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${
-                isActive
-                  ? "bg-indigo-600 text-white"
-                  : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+              `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${isActive
+                ? "bg-indigo-600 text-white"
+                : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
               }`
             }
           >
@@ -313,10 +301,9 @@ export default function DashboardLayout() {
             to="/library"
             onClick={() => setIsMobileMenuOpen(false)}
             className={({ isActive }) =>
-              `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${
-                isActive
-                  ? "bg-indigo-600 text-white"
-                  : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+              `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${isActive
+                ? "bg-indigo-600 text-white"
+                : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
               }`
             }
           >
@@ -327,10 +314,9 @@ export default function DashboardLayout() {
             to="/recommendations"
             onClick={() => setIsMobileMenuOpen(false)}
             className={({ isActive }) =>
-              `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${
-                isActive
-                  ? "bg-indigo-600 text-white"
-                  : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+              `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${isActive
+                ? "bg-indigo-600 text-white"
+                : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
               }`
             }
           >
@@ -341,10 +327,9 @@ export default function DashboardLayout() {
             to="/youtube-studio"
             onClick={() => setIsMobileMenuOpen(false)}
             className={({ isActive }) =>
-              `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${
-                isActive
-                  ? "bg-indigo-600 text-white"
-                  : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+              `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${isActive
+                ? "bg-indigo-600 text-white"
+                : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
               }`
             }
           >
@@ -355,10 +340,9 @@ export default function DashboardLayout() {
             to="/studio"
             onClick={() => setIsMobileMenuOpen(false)}
             className={({ isActive }) =>
-              `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${
-                isActive
-                  ? "bg-indigo-600 text-white"
-                  : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+              `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${isActive
+                ? "bg-indigo-600 text-white"
+                : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
               }`
             }
           >
@@ -369,10 +353,9 @@ export default function DashboardLayout() {
             to="/competitors"
             onClick={() => setIsMobileMenuOpen(false)}
             className={({ isActive }) =>
-              `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${
-                isActive
-                  ? "bg-indigo-600 text-white"
-                  : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+              `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${isActive
+                ? "bg-indigo-600 text-white"
+                : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
               }`
             }
           >
@@ -384,10 +367,9 @@ export default function DashboardLayout() {
             to="/sources"
             onClick={() => setIsMobileMenuOpen(false)}
             className={({ isActive }) =>
-              `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${
-                isActive
-                  ? "bg-indigo-600 text-white"
-                  : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+              `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${isActive
+                ? "bg-indigo-600 text-white"
+                : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
               }`
             }
           >
@@ -398,10 +380,9 @@ export default function DashboardLayout() {
             to="/analytics"
             onClick={() => setIsMobileMenuOpen(false)}
             className={({ isActive }) =>
-              `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${
-                isActive
-                  ? "bg-indigo-600 text-white"
-                  : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+              `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${isActive
+                ? "bg-indigo-600 text-white"
+                : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
               }`
             }
           >
@@ -412,10 +393,9 @@ export default function DashboardLayout() {
             to="/settings"
             onClick={() => setIsMobileMenuOpen(false)}
             className={({ isActive }) =>
-              `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${
-                isActive
-                  ? "bg-indigo-600 text-white"
-                  : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+              `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${isActive
+                ? "bg-indigo-600 text-white"
+                : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
               }`
             }
           >

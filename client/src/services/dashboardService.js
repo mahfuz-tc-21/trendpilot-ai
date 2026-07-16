@@ -34,10 +34,42 @@ const dashboardService = {
   },
 
   /**
-   * Fetch consolidated crawl, AI, and recommendation audit logs.
+   * Fetch consolidated audit trails and crawl, AI, and recommendation audit logs.
    */
   getActivityLogs: async () => {
     const response = await api.get("/api/dashboard/activity");
+    return response.data.data;
+  },
+
+  /**
+   * Fetch calculated trending topics list.
+   */
+  getTrendingTopics: async () => {
+    const response = await api.get("/api/dashboard/trends/topics");
+    return response.data.data;
+  },
+
+  /**
+   * Fetch detailed trend analytics and competitor insights.
+   */
+  getTrendDetail: async (topic) => {
+    const response = await api.get("/api/dashboard/trends/detail", { params: { topic } });
+    return response.data;
+  },
+
+  /**
+   * Generate content package from a trend.
+   */
+  generateTrendPackage: async (topic) => {
+    const response = await api.post("/api/dashboard/trends/generate-all", { topic });
+    return response.data.data;
+  },
+
+  /**
+   * Build winning competitive strategy.
+   */
+  beatCompetitorStrategy: async (competitorName, topic) => {
+    const response = await api.post("/api/dashboard/trends/beat-competitor", { competitorName, topic });
     return response.data.data;
   }
 };

@@ -1,4 +1,6 @@
 import { chromium } from "playwright";
+import path from "path";
+import fs from "fs/promises";
 
 /**
  * Playwright-based crawler to extract post details and metrics from public Facebook Pages.
@@ -79,6 +81,76 @@ class FacebookCrawler {
         const postLocator = postLocators.nth(i);
 
         try {
+          // Check for expand button inside this specific post
+          const expandSelectors = [
+            'div[role="button"]:has-text("See more")',
+            'div[role="button"]:has-text("See More")',
+            'span:has-text("See more")',
+            'span:has-text("See More")',
+            'span:has-text("Continue Reading")',
+            'div:has-text("Continue Reading")',
+            'a:has-text("See more")',
+            'a:has-text("See More")',
+            'a:has-text("Continue Reading")'
+          ];
+          
+          let expandButton = null;
+          for (const sel of expandSelectors) {
+            const loc = postLocator.locator(sel).first();
+            if (await loc.isVisible()) {
+              const text = await loc.innerText();
+              const lowerText = text.toLowerCase();
+              // Ignore translations or other items containing button selectors
+              if (
+                (lowerText.includes("see more") || lowerText.includes("continue reading")) &&
+                !lowerText.includes("translation")
+              ) {
+                expandButton = loc;
+                break;
+              }
+            }
+          }
+
+          let expansionSuccessful = false;
+          if (expandButton) {
+            console.log(`☝️ Clicking expand text button in post #${i}`);
+            try {
+              const checkCaptionText = async () => {
+                const messageLocators = [
+                  postLocator.locator('div[data-ad-preview="message"]'),
+                  postLocator.locator('div[data-ad-comet-preview="message"]'),
+                  postLocator.locator('div[dir="auto"]').first()
+                ];
+                for (const loc of messageLocators) {
+                  if (await loc.isVisible()) {
+                    return (await loc.innerText()).trim();
+                  }
+                }
+                return "";
+              };
+
+              const initialLen = (await checkCaptionText()).length;
+              await expandButton.click({ timeout: 3000 });
+              await page.waitForTimeout(500); // Base delay for DOM calculation
+
+              // Poll to wait until expanded text is rendered
+              let currentText = await checkCaptionText();
+              let attempts = 0;
+              while (currentText.length <= initialLen && attempts < 5) {
+                await page.waitForTimeout(100);
+                currentText = await checkCaptionText();
+                attempts++;
+              }
+              
+              if (currentText.length > initialLen) {
+                expansionSuccessful = true;
+                console.log(`📈 Expanded post text length went from ${initialLen} to ${currentText.length}`);
+              }
+            } catch (clickErr) {
+              console.warn(`⚠️ Warning: Failed to expand post text: ${clickErr.message}`);
+            }
+          }
+
           // Extract caption
           const messageLocators = [
             postLocator.locator('div[data-ad-preview="message"]'),
@@ -95,6 +167,22 @@ class FacebookCrawler {
 
           if (!caption) {
             continue; // Skip posts without text contents
+          }
+
+          // Clean caption text from trailing expand button labels if they are extracted as part of innerText
+          // Ignore "See translation" and clean button variations
+          caption = caption
+            .replace(/\s*See\s+translation\s*$/i, "")
+            .replace(/\s*See\s+more\s*\.\.\.\s*$/i, "")
+            .replace(/\s*See\s+More\s*\.\.\.\s*$/i, "")
+            .replace(/\s*See\s+more\s*$/i, "")
+            .replace(/\s*See\s+More\s*$/i, "")
+            .replace(/\s*Continue\s+Reading\s*$/i, "")
+            .trim();
+
+          // Log warning if expansion failed but we keep partial caption
+          if (expandButton && !expansionSuccessful) {
+            console.warn(`⚠️ Warning: Post #${i} expansion failed or did not yield longer text.`);
           }
 
           // Extract link & post ID
@@ -209,6 +297,18 @@ class FacebookCrawler {
       }
 
       return posts;
+    } catch (err) {
+      try {
+        const screenshotDir = path.join(process.cwd(), "screenshots");
+        await fs.mkdir(screenshotDir, { recursive: true });
+        const filename = `failure_${Date.now()}.png`;
+        const screenshotPath = path.join(screenshotDir, filename);
+        await page.screenshot({ path: screenshotPath });
+        console.error(`📸 Saved failure screenshot to: ${screenshotPath}`);
+      } catch (screenshotErr) {
+        console.error(`⚠️ Failed to take error screenshot: ${screenshotErr.message}`);
+      }
+      throw err;
     } finally {
       await browser.close();
     }

@@ -121,6 +121,89 @@ class DashboardController {
       next(error);
     }
   }
+
+  /**
+   * Fetch trending topics computed from database.
+   */
+  async getTrendingTopics(req, res, next) {
+    try {
+      const userId = req.user.userId;
+      const list = await dashboardService.getTrendingTopicsList(userId);
+      return res.status(200).json({
+        success: true,
+        data: list
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Fetch dynamic trend details from Gemini.
+   */
+  async getTrendDetail(req, res, next) {
+    try {
+      const userId = req.user.userId;
+      const topic = req.query.topic;
+      if (!topic) {
+        return res.status(400).json({ success: false, message: "Topic query parameter is required" });
+      }
+      const detail = await dashboardService.getTrendDetail(userId, topic);
+      if (!detail) {
+        return res.status(200).json({
+          success: false,
+          message: `No crawled articles or posts matching "${topic}" exist in the database. Ingest source feeds first.`
+        });
+      }
+      return res.status(200).json({
+        success: true,
+        data: detail
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Generate creator package master document for a trend.
+   */
+  async generateEverything(req, res, next) {
+    try {
+      const userId = req.user.userId;
+      const { topic } = req.body;
+      if (!topic) {
+        return res.status(400).json({ success: false, message: "Topic is required" });
+      }
+      const output = await dashboardService.generateEverything(userId, topic);
+      return res.status(200).json({
+        success: true,
+        message: "Creator package generated successfully",
+        data: output
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Beat competitor strategy recommendations.
+   */
+  async beatCompetitor(req, res, next) {
+    try {
+      const userId = req.user.userId;
+      const { competitorName, topic } = req.body;
+      if (!competitorName || !topic) {
+        return res.status(400).json({ success: false, message: "Competitor name and topic are required" });
+      }
+      const strategy = await dashboardService.beatCompetitor(userId, competitorName, topic);
+      return res.status(200).json({
+        success: true,
+        data: strategy
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default new DashboardController();
