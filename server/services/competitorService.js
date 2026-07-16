@@ -4,6 +4,7 @@ import BrandProfile from "../models/BrandProfile.js";
 import CompetitorReport from "../models/CompetitorReport.js";
 import User from "../models/User.js";
 import { getAIClient, getLanguageInstruction } from "./aiService.js";
+import facebookCrawler from "./facebookCrawler.js";
 
 class CompetitorService {
   /**
@@ -59,33 +60,37 @@ class CompetitorService {
   }
 
   /**
-   * Crawl competitor page feed and mock-simulate post listings based on their category
+   * Crawl competitor page feed using Playwright crawler and save posts
    */
   async crawlCompetitorPosts(competitorId) {
     const competitor = await Competitor.findById(competitorId);
     if (!competitor) return [];
 
     console.log(`📡 Ingesting posts for competitor brand: ${competitor.brandName}`);
-    const pageName = this.parsePageUrl(competitor.pageUrl).toLowerCase();
+    const pageUrl = competitor.pageUrl;
 
-    // Generate high quality category/brand specific posts datasets
-    const samplePosts = this.getMockPostsForBrand(pageName, competitor.brandName);
+    const realPosts = await facebookCrawler.scrapeFacebookPageWithRetry(pageUrl);
     const savedPosts = [];
 
-    for (const postData of samplePosts) {
-      const externalId = `fb_comp_${pageName}_${postData.postId}`;
+    for (const postData of realPosts) {
+      const externalId = `fb_comp_${competitor.brandName}_${postData.postId}`;
       const existing = await CompetitorPost.findOne({ externalId });
 
       if (!existing) {
         const post = new CompetitorPost({
           competitorId: competitor._id,
+          userId: competitor.userId,
           externalId,
-          title: postData.title,
-          description: postData.description,
-          url: `${competitor.pageUrl}/posts/${postData.postId}`,
-          publishedAt: postData.publishedAt,
-          format: postData.format,
-          engagement: postData.engagement,
+          title: postData.caption.substring(0, 60) + (postData.caption.length > 60 ? "..." : ""),
+          description: postData.caption,
+          url: postData.postUrl,
+          publishedAt: postData.postedDate,
+          format: postData.videoUrls.length > 0 ? "Video" : (postData.caption.length > 300 ? "Long Post" : "Short Post"),
+          engagement: {
+            likes: postData.reactionCount || 0,
+            shares: postData.shareCount || 0,
+            comments: postData.commentCount || 0
+          },
           processedStatus: "completed"
         });
         await post.save();
@@ -100,137 +105,6 @@ class CompetitorService {
   }
 
   /**
-   * Helper to compile customized competitor sample posts based on analyzed brand
-   */
-  getMockPostsForBrand(pageName, brandName) {
-    const now = new Date();
-    const subDays = (d) => new Date(now.getTime() - d * 24 * 60 * 60 * 1000);
-
-    const datasets = {
-      openai: [
-        {
-          postId: "op001",
-          title: "Announcing GPT-5 architecture model release parameters",
-          description: "Today we are excited to preview our next-generation model GPT-5. Optimized for reasoning, complex code generation, and multi-modal instructions with 10x throughput. Learn more at openai.com/blog.",
-          publishedAt: subDays(1),
-          format: "Announcement",
-          engagement: { likes: 5200, shares: 1400, comments: 850 }
-        },
-        {
-          postId: "op002",
-          title: "Prompt engineering tutorial for advanced web agent execution",
-          description: "A step-by-step tutorial on executing web agents using system instructions. How to bypass loop traps and structure outputs in strict JSON. Check our github repo for examples.",
-          publishedAt: subDays(3),
-          format: "Tutorial",
-          engagement: { likes: 2100, shares: 420, comments: 190 }
-        },
-        {
-          postId: "op003",
-          title: "Sora cinematic visual showcase - AI rendering tools demo",
-          description: "Prompt: A conceptual interface showing high fidelity code nodes compiling inside a sleek glass monitor. Generated 100% using Sora with zero editing.",
-          publishedAt: subDays(5),
-          format: "Video",
-          engagement: { likes: 4500, shares: 920, comments: 340 }
-        }
-      ],
-      canva: [
-        {
-          postId: "cv001",
-          title: "Top 10 font combinations for SaaS landing pages in 2026",
-          description: "Struggling to pick font scales for your tech startup? Swipe left to see our top 10 font combinations designed by our visual brand experts! #SaaS #DesignTips",
-          publishedAt: subDays(2),
-          format: "Carousel",
-          engagement: { likes: 1200, shares: 350, comments: 95 }
-        },
-        {
-          postId: "cv002",
-          title: "Designing custom UI mockups inside Canva editor sheets",
-          description: "Our new editor sheets support dynamic screen mockups. Designing premium layouts is now easier than ever with zero CSS knowledge. Watch the full walkthrough tutorial video.",
-          publishedAt: subDays(4),
-          format: "Tutorial",
-          engagement: { likes: 980, shares: 180, comments: 60 }
-        },
-        {
-          postId: "cv003",
-          title: "AI Graphic design prompt cheatsheet for creators",
-          description: "Want to create matching social assets? Here is our ultimate design prompt cheatsheet for Midjourney and Canva Magic Studio.",
-          publishedAt: subDays(7),
-          format: "Infographic",
-          engagement: { likes: 2300, shares: 890, comments: 150 }
-        }
-      ],
-      programminghero: [
-        {
-          postId: "ph001",
-          title: "Next.js 15 routing architecture tutorial for junior developers",
-          description: "Next.js-এর নতুন routing system নিয়ে কনফিউশন? এই ভিডিওতে সহজ বাংলায় Page and App router differences ক্লিয়ার করা হয়েছে। কমেন্টে লিংক পাবেন।",
-          publishedAt: subDays(1),
-          format: "Tutorial",
-          engagement: { likes: 1800, shares: 540, comments: 240 }
-        },
-        {
-          postId: "ph002",
-          title: "Web development core learning roadmap calendar checklist",
-          description: "৩ মাসের মধ্যে ফুলস্ট্যাক ডেভেলপার হতে চাইলে এই রোডম্যাপটি ফলো করুন। রোডম্যাপটি সেভ করে রাখুন এবং বন্ধুদের সাথে শেয়ার করুন! #roadmap #programming",
-          publishedAt: subDays(3),
-          format: "Carousel",
-          engagement: { likes: 2900, shares: 1100, comments: 410 }
-        },
-        {
-          postId: "ph003",
-          title: "Junior developer vs Senior developer coding hours meme",
-          description: "Junior: Code for 1 hour, debug for 5 hours. Senior: Think for 5 hours, write code in 5 minutes! 💻 #programmerlife #meme",
-          publishedAt: subDays(6),
-          format: "Meme",
-          engagement: { likes: 3500, shares: 480, comments: 190 }
-        }
-      ],
-      freecodecamp: [
-        {
-          postId: "fcc001",
-          title: "Learn MERN stack by building 5 SaaS applications - 10 hour course",
-          description: "Our comprehensive 10-hour MERN course is live. Learn React, Node, Express, and MongoDB by writing real production platforms. Fully free.",
-          publishedAt: subDays(2),
-          format: "Video",
-          engagement: { likes: 3100, shares: 1200, comments: 340 }
-        },
-        {
-          postId: "fcc002",
-          title: "JavaScript array methods cheat-sheet reference guide",
-          description: "Map, Filter, Reduce, Every, Some. If you struggle with array iterations, save this cheat-sheet. It will make your code 10x cleaner.",
-          publishedAt: subDays(5),
-          format: "Infographic",
-          engagement: { likes: 4500, shares: 2100, comments: 280 }
-        }
-      ]
-    };
-
-    // Generic fallback dataset if pageName doesn't match predefined brands
-    const fallback = [
-      {
-        postId: `gen_${pageName}_01`,
-        title: `Scaling ${brandName} operations and digital growth strategy`,
-        description: "How we optimize our core operations for tech distribution and audience engagement. Swipe to read our full analysis list.",
-        publishedAt: subDays(2),
-        format: "Carousel",
-        engagement: { likes: 450, shares: 80, comments: 35 }
-      },
-      {
-        postId: `gen_${pageName}_02`,
-        title: `Tutorial on implementing structured JSON outputs in ${brandName}`,
-        description: "A comprehensive developer tutorial demonstrating integration steps, database mapping, and key parameters.",
-        publishedAt: subDays(4),
-        format: "Tutorial",
-        engagement: { likes: 320, shares: 45, comments: 20 }
-      },
-      {
-        postId: `gen_${pageName}_03`,
-        title: `How ${brandName} automates routine ingestion workloads`,
-        description: "Sharing our strategic recommendations and internal tools we built to simplify data syncing across channels.",
-        publishedAt: subDays(8),
-        format: "Long Post",
-        engagement: { likes: 620, shares: 110, comments: 55 }
-      }
     ];
 
     return datasets[pageName] || fallback;

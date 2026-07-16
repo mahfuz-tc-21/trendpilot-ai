@@ -58,7 +58,7 @@ class FacebookCrawler {
             break;
           }
         }
-      } catch (err) {
+      } catch {
         // ignore banner closing failures
       }
 
