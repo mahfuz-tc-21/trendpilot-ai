@@ -1,26 +1,9 @@
-import { GoogleGenAI } from "@google/genai";
 import Competitor from "../models/Competitor.js";
 import CompetitorPost from "../models/CompetitorPost.js";
 import BrandProfile from "../models/BrandProfile.js";
 import CompetitorReport from "../models/CompetitorReport.js";
 import User from "../models/User.js";
-
-const getAIClient = async (userId) => {
-  let apiKey = null;
-  if (userId) {
-    const user = await User.findById(userId);
-    if (user && user.geminiApiKey) {
-      apiKey = user.geminiApiKey;
-    }
-  }
-  if (!apiKey) {
-    apiKey = process.env.GEMINI_API_KEY;
-  }
-  if (!apiKey) {
-    throw new Error("No Gemini API Key found. Please configure your API key in Settings first.");
-  }
-  return new GoogleGenAI({ apiKey });
-};
+import { getAIClient, getLanguageInstruction } from "./aiService.js";
 
 class CompetitorService {
   /**
@@ -312,6 +295,9 @@ class CompetitorService {
       publishedAt: p.publishedAt
     }));
 
+    const user = await User.findById(userId);
+    const language = user?.language || "bn";
+
     const prompt = `You are an elite competitive intelligence strategist and growth marketer.
 Analyze the following competitor data and compile a highly strategic Competitor Comparison Report.
 
@@ -362,7 +348,9 @@ Please return a strict JSON response containing EXACTLY the following structure 
   "contentGaps": [
     { "topic": "Missed niche topic", "opportunityScore": "High", "relevance": "How it matches our target profile" }
   ]
-}`;
+}
+
+${getLanguageInstruction(language)}`;
 
     const ai = await getAIClient(userId);
     const response = await ai.models.generateContent({
@@ -414,6 +402,9 @@ Please return a strict JSON response containing EXACTLY the following structure 
       likes: p.engagement?.likes
     }));
 
+    const user = await User.findById(userId);
+    const language = user?.language || "bn";
+
     const prompt = `You are a world-class growth strategist. Compile a highly personalized AI Weekly Content Strategy specifically for our brand:
 Brand: ${brandProfile.brandName}
 Industry: ${brandProfile.industry}
@@ -452,7 +443,9 @@ Return a strict JSON response containing EXACTLY the following structure (do not
     "ctasToUse": ["CTA structure 1", "CTA structure 2"],
     "formatsToAvoid": ["Video memes", "Plain text updates"]
   }
-}`;
+}
+
+${getLanguageInstruction(language)}`;
 
     const ai = await getAIClient(userId);
     const response = await ai.models.generateContent({
@@ -506,6 +499,9 @@ Return a strict JSON response containing EXACTLY the following structure (do not
       throw new Error("Please configure your Brand Profile under the Brand Profile tab first to get personalized strategy recommendations.");
     }
 
+    const user = await User.findById(userId);
+    const language = user?.language || "bn";
+
     const prompt = `You are a world-class growth copywriter and marketing strategist.
 We want to outperform our competitor: ${post.competitorId?.brandName}.
 
@@ -549,7 +545,9 @@ Return a strict JSON response containing EXACTLY the following structure (do not
     "blogVersion": "SEO optimized blog introduction and key sections..."
   },
   "whyItBeatsThem": "Explain details of why this version will get higher CTR and shares..."
-}`;
+}
+
+${getLanguageInstruction(language)}`;
 
     const ai = await getAIClient(userId);
     const response = await ai.models.generateContent({

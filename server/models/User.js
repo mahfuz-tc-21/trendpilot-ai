@@ -27,6 +27,11 @@ const userSchema = new mongoose.Schema(
     geminiApiKey: {
       type: String,
       default: ""
+    },
+    language: {
+      type: String,
+      enum: ["bn", "en"],
+      default: "bn"
     }
   },
   {

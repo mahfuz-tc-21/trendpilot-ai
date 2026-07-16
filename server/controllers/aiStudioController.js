@@ -1,29 +1,8 @@
-import { GoogleGenAI } from "@google/genai";
 import ContentItem from "../models/ContentItem.js";
 import Summary from "../models/Summary.js";
 import User from "../models/User.js";
 import StudioOutput from "../models/StudioOutput.js";
-
-const getAIClient = async (userId) => {
-  let apiKey = null;
-
-  if (userId) {
-    const user = await User.findById(userId);
-    if (user && user.geminiApiKey) {
-      apiKey = user.geminiApiKey;
-    }
-  }
-
-  if (!apiKey) {
-    apiKey = process.env.GEMINI_API_KEY;
-  }
-
-  if (!apiKey) {
-    throw new Error("No Gemini API Key found. Please configure your API key in Settings first.");
-  }
-
-  return new GoogleGenAI({ apiKey });
-};
+import { getAIClient, getLanguageInstruction } from "../services/aiService.js";
 
 class AIStudioController {
   /**
@@ -98,6 +77,8 @@ Format Specific Instructions:
 - For "CTA": Generate 10 variations of high-conversion Call-To-Action (CTA) buttons/phrases.
 - For "Image_Prompt": Write 3 detailed text-to-image prompts describing custom conceptual graphics (e.g. for Midjourney).
 - For "Carousel": Write slide-by-slide copy (10 slides) for a carousel post (Slide title, body text, graphic description).
+- For "Rewrite": Rewrite the provided content to improve clarity, flow, tone, and overall engagement, while strictly adhering to the selected language.
+- For "Translate": Translate the provided content accurately into the selected language, maintaining original tone, formatting, and keeping technical/programming terms in English where appropriate.
 - For "Generate_Everything": Generate all the following assets compiled into a single master document separated by clear markdown headers:
   - Viral Titles (5 options)
   - Thumbnail Text (5 options)
@@ -115,11 +96,15 @@ Custom Creator Directives:
 
 Respond with ONLY the generated markdown content. Do not include markdown code block ticks (\`\`\`markdown) or any other conversational preambles/introductory comments. Return only the raw formatted text.`;
 
+      const user = await User.findById(userId);
+      const language = user?.language || "bn";
+      const finalPrompt = prompt + getLanguageInstruction(language);
+
       console.log(`🤖 AI Studio generating ${format} draft...`);
       const ai = await getAIClient(req.user?.userId);
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
-        contents: prompt,
+        contents: finalPrompt,
         config: {
           temperature: 0.7
         }
@@ -193,11 +178,16 @@ Refinement Directives:
 - For Twitter threads, preserve the "---" delimiters separating individual tweets.
 - Respond with ONLY the updated draft content. Do not include markdown block ticks or chat introductions. Return the clean text draft only.`;
 
+      const userId = req.user.userId;
+      const user = await User.findById(userId);
+      const language = user?.language || "bn";
+      const finalPrompt = prompt + getLanguageInstruction(language);
+
       console.log("🤖 AI Studio refining draft via chat...");
       const ai = await getAIClient(req.user?.userId);
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
-        contents: prompt,
+        contents: finalPrompt,
         config: {
           temperature: 0.6
         }

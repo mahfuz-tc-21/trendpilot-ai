@@ -63,8 +63,8 @@ class AuthController {
   async updateProfile(req, res, next) {
     try {
       const userId = req.user.userId;
-      const { name, email, geminiApiKey } = req.body;
-      const updatedUser = await authService.updateUserProfile(userId, { name, email, geminiApiKey });
+      const { name, email, geminiApiKey, language } = req.body;
+      const updatedUser = await authService.updateUserProfile(userId, { name, email, geminiApiKey, language });
 
       return res.status(200).json({
         success: true,

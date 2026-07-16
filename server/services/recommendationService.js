@@ -3,7 +3,8 @@ import path from "path";
 import ContentItem from "../models/ContentItem.js";
 import Summary from "../models/Summary.js";
 import Recommendation from "../models/Recommendation.js";
-import aiService from "./aiService.js";
+import User from "../models/User.js";
+import aiService, { getLanguageInstruction } from "./aiService.js";
 
 /**
  * Service to generate content recommendations based on AI summaries and metadata.
@@ -22,6 +23,9 @@ class RecommendationService {
       throw new Error(`ContentItem not found: ${contentItemId}`);
     }
     const userId = contentItem.userId || contentItem.sourceId?.userId;
+
+    const user = await User.findById(userId);
+    const language = user?.language || "bn";
 
     // Check if recommendation already exists to prevent duplicate Gemini calls
     const existingRec = await Recommendation.findOne({ contentId: contentItemId, userId });
@@ -51,7 +55,7 @@ class RecommendationService {
         .replace("{{SUMMARY}}", summary.summary)
         .replace("{{TOPICS}}", summary.topics.join(", "))
         .replace("{{KEYWORDS}}", summary.keywords.join(", "))
-        .replace("{{AUDIENCE}}", summary.audience || "general");
+        .replace("{{AUDIENCE}}", summary.audience || "general") + getLanguageInstruction(language);
 
       // 3. Request Gemini API (reusing the callGemini wrapper with retries and exponential backoff)
       const rawJson = await aiService.callGemini(prompt);

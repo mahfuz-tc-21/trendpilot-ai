@@ -8,7 +8,7 @@ import User from "../models/User.js";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const getAIClient = async (userId) => {
+export const getAIClient = async (userId) => {
   let apiKey = null;
 
   if (userId) {
@@ -27,6 +27,21 @@ const getAIClient = async (userId) => {
   }
 
   return new GoogleGenAI({ apiKey });
+};
+
+/**
+ * Centered helper to generate system directives for target languages.
+ */
+export const getLanguageInstruction = (language) => {
+  if (language === "bn") {
+    return `\nImportant Language Constraint:
+Generate all content (summaries, recommendations, captions, hooks, titles, outlines, descriptions, scripts, copy drafts, keywords, topics, audience details, competitor reports, etc.) in natural, modern Bangla (Bengali).
+Keep programming and technical terms (e.g. AI, React, Node.js, JavaScript, API, SEO, Facebook, YouTube, etc.) in English where appropriate.
+Do not translate proper nouns or brand names. The entire output MUST follow this language selection consistently.`;
+  } else {
+    return `\nImportant Language Constraint:
+Generate all content (summaries, recommendations, captions, hooks, titles, descriptions, scripts, copy drafts, keywords, topics, audience details, competitor reports, etc.) in fluent, professional English.`;
+  }
 };
 
 /**
@@ -152,7 +167,10 @@ class AIService {
     if (!contentItem) {
       throw new Error(`ContentItem not found: ${contentItemId}`);
     }
-    const userId = contentItem.sourceId?.userId;
+    const userId = contentItem.userId || contentItem.sourceId?.userId;
+
+    const user = await User.findById(userId);
+    const language = user?.language || "bn";
 
     // Set processing status
     contentItem.processedStatus = "processing";
@@ -180,7 +198,7 @@ class AIService {
           .replace("{{AUTHOR}}", contentItem.author || "Unknown")
           .replace("{{TYPE}}", contentItem.sourceId?.type || "website")
           .replace("{{CATEGORY}}", contentItem.sourceId?.category || "general")
-          .replace("{{CONTENT}}", cleaned.substring(0, 5000));
+          .replace("{{CONTENT}}", cleaned.substring(0, 5000)) + getLanguageInstruction(language);
 
         finalAnalysisJson = await this.callGemini(prompt, 3, 3000, userId);
       } else {
@@ -197,7 +215,7 @@ class AIService {
         for (let i = 0; i < chunks.length; i++) {
           const chunkPrompt = chunkPromptTpl
             .replace("{{TITLE}}", contentItem.title)
-            .replace("{{CONTENT}}", chunks[i]);
+            .replace("{{CONTENT}}", chunks[i]) + getLanguageInstruction(language);
 
           try {
             const chunkResult = await this.callGemini(chunkPrompt, 3, 3000, userId);
@@ -222,7 +240,7 @@ class AIService {
           .replace("{{AUTHOR}}", contentItem.author || "Unknown")
           .replace("{{TYPE}}", contentItem.sourceId?.type || "website")
           .replace("{{CATEGORY}}", contentItem.sourceId?.category || "general")
-          .replace("{{CONTENT}}", consolidatedText);
+          .replace("{{CONTENT}}", consolidatedText) + getLanguageInstruction(language);
 
         finalAnalysisJson = await this.callGemini(finalPrompt, 3, 3000, userId);
       }

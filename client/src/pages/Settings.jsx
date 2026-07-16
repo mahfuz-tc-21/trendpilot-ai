@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings, Shield, User, Clock, Bell } from "lucide-react";
+import { Settings, Shield, User, Clock, Bell, Globe } from "lucide-react";
 import { useAuthStore } from "../services/authStore.js";
 
 export default function SettingsPage() {
@@ -12,9 +12,18 @@ export default function SettingsPage() {
   const [showKey, setShowKey] = useState(false);
   const [updatingKey, setUpdatingKey] = useState(false);
 
+  const [languageInput, setLanguageInput] = useState(user?.language || "bn");
+  const [updatingLanguage, setUpdatingLanguage] = useState(false);
+
   useEffect(() => {
     if (user?.geminiApiKey !== undefined) {
       setApiKeyInput(user.geminiApiKey);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user?.language !== undefined) {
+      setLanguageInput(user.language);
     }
   }, [user]);
 
@@ -28,6 +37,19 @@ export default function SettingsPage() {
       alert(err.message || "Failed to save API key");
     } finally {
       setUpdatingKey(false);
+    }
+  };
+
+  const handleSaveLanguage = async (e) => {
+    e.preventDefault();
+    setUpdatingLanguage(true);
+    try {
+      await updateProfile({ language: languageInput });
+      alert("Language preference updated successfully!");
+    } catch (err) {
+      alert(err.message || "Failed to save language preference");
+    } finally {
+      setUpdatingLanguage(false);
     }
   };
 
@@ -129,6 +151,42 @@ export default function SettingsPage() {
                   className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-500/15 transition-colors cursor-pointer"
                 >
                   {updatingKey ? "Saving Key..." : "Save API Key"}
+                </button>
+              </div>
+            </form>
+          </div>
+          {/* Language Preference Configuration */}
+          <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-5 text-left">
+            <h2 className="text-sm font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-2 pb-3 border-b border-zinc-800">
+              <Globe className="h-4.5 w-4.5 text-indigo-400" />
+              Content Language Preference
+            </h2>
+
+            <form onSubmit={handleSaveLanguage} className="space-y-4">
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-zinc-200 uppercase tracking-wide">
+                  Output Generation Language
+                </label>
+                <p className="text-xs text-zinc-500 leading-relaxed">
+                  Select your primary language for AI summaries, content briefs, social media copy, and creator studio posts.
+                </p>
+                <select
+                  value={languageInput}
+                  onChange={(e) => setLanguageInput(e.target.value)}
+                  className="w-full h-10 px-3 rounded-xl bg-zinc-950 border border-zinc-850 text-sm text-zinc-150 focus:outline-none focus:border-indigo-500 transition-colors"
+                >
+                  <option value="bn">Bangla (বাংলা)</option>
+                  <option value="en">English (English)</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button
+                  type="submit"
+                  disabled={updatingLanguage}
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl text-xs font-semibold shadow-lg shadow-indigo-500/15 transition-colors cursor-pointer"
+                >
+                  {updatingLanguage ? "Saving Preference..." : "Save Preference"}
                 </button>
               </div>
             </form>

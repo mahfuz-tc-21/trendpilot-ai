@@ -77,7 +77,8 @@ class AuthService {
       name: user.name,
       email: user.email,
       role: user.role,
-      geminiApiKey: user.geminiApiKey || ""
+      geminiApiKey: user.geminiApiKey || "",
+      language: user.language || "bn"
     };
 
     return { token, user: userProfile };
@@ -100,7 +101,8 @@ class AuthService {
       name: user.name,
       email: user.email,
       role: user.role,
-      geminiApiKey: user.geminiApiKey || ""
+      geminiApiKey: user.geminiApiKey || "",
+      language: user.language || "bn"
     };
   }
 
@@ -121,6 +123,7 @@ class AuthService {
     if (updateData.name !== undefined) user.name = updateData.name;
     if (updateData.email !== undefined) user.email = updateData.email;
     if (updateData.geminiApiKey !== undefined) user.geminiApiKey = updateData.geminiApiKey;
+    if (updateData.language !== undefined) user.language = updateData.language;
 
     await user.save();
 
@@ -129,7 +132,8 @@ class AuthService {
       name: user.name,
       email: user.email,
       role: user.role,
-      geminiApiKey: user.geminiApiKey || ""
+      geminiApiKey: user.geminiApiKey || "",
+      language: user.language || "bn"
     };
   }
 }

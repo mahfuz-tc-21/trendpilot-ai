@@ -325,6 +325,10 @@ ${data.whyItBeatsThem}
                     <option value="Image_Prompt">AI Image Prompt (Midjourney)</option>
                     <option value="Carousel">Slide Carousel Copy</option>
                   </optgroup>
+                  <optgroup label="Refine & Translate">
+                    <option value="Rewrite">Rewrite Draft</option>
+                    <option value="Translate">Translate Draft</option>
+                  </optgroup>
                 </select>
               </div>
             </div>
