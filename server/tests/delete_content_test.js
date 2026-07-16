@@ -40,7 +40,7 @@ async function runDeleteContentTest() {
     const userB = new User({ name: "User B", email: "userB@delete.com", passwordHash: "h" });
     await userB.save();
 
-    // 2. Setup Source with required category field
+    // 2. Setup Source
     const sourceA = new Source({
       userId: userA._id,
       name: "Test Source",
@@ -72,6 +72,8 @@ async function runDeleteContentTest() {
     const recA = new Recommendation({
       userId: userA._id,
       contentId: itemA._id,
+      suggestedTitle: "Test Title",
+      hook: "Test Hook",
       recommendationData: {}
     });
     await recA.save();
