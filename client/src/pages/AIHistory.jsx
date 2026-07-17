@@ -414,7 +414,7 @@ export default function AIHistory() {
               <div className="flex items-center gap-1.5 pt-2 border-t border-zinc-850/60">
                 <button
                   onClick={() => handleContinueEditing(doc._id)}
-                  className="flex items-center gap-1 px-2.5 py-1.5 bg-indigo-600/15 text-indigo-400 text-[10px] font-bold rounded-lg hover:bg-indigo-600/25 transition-colors cursor-pointer"
+                  className="flex items-center gap-1 px-2.5 py-1.5 bg-indigo-950/20 text-indigo-400 text-[10px] font-bold rounded-lg hover:bg-indigo-950/30 transition-colors cursor-pointer"
                   title="Continue Editing"
                 >
                   <Edit3 className="h-3 w-3" />

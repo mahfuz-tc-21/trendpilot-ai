@@ -208,18 +208,7 @@ export default function DashboardLayout() {
               Analytics
             </NavLink>
 
-            <NavLink
-              to="/settings"
-              className={({ isActive }) =>
-                `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${isActive
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/10"
-                  : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100"
-                }`
-              }
-            >
-              <Settings className="mr-3 h-5 w-5 flex-shrink-0" />
-              Settings
-            </NavLink>
+
 
             <NavLink
               to="/trash"
@@ -244,19 +233,34 @@ export default function DashboardLayout() {
                 {user?.name ? user.name.substring(0, 2).toUpperCase() : "U"}
               </div>
               <div className="text-left">
-                <p className="text-xs font-semibold text-zinc-200 truncate max-w-28">
+                <p className="text-xs font-semibold text-zinc-200 truncate max-w-24">
                   {user?.name || "User"}
                 </p>
                 <p className="text-[10px] text-zinc-500 capitalize">{user?.role || "Member"}</p>
               </div>
             </div>
-            <button
-              onClick={handleLogout}
-              className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/80 transition-colors"
-              title="Logout"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
+            <div className="flex items-center gap-1">
+              <NavLink
+                to="/settings"
+                className={({ isActive }) =>
+                  `p-1.5 rounded-lg transition-colors cursor-pointer ${
+                    isActive 
+                      ? "text-indigo-400 bg-zinc-800/40" 
+                      : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/80"
+                  }`
+                }
+                title="Settings"
+              >
+                <Settings className="h-4 w-4" />
+              </NavLink>
+              <button
+                onClick={handleLogout}
+                className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/80 transition-colors cursor-pointer"
+                title="Logout"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
       </aside>
@@ -421,19 +425,7 @@ export default function DashboardLayout() {
             <BarChart3 className="mr-3 h-5 w-5" />
             Analytics
           </NavLink>
-          <NavLink
-            to="/settings"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className={({ isActive }) =>
-              `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${isActive
-                ? "bg-indigo-600 text-white"
-                : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
-              }`
-            }
-          >
-            <Settings className="mr-3 h-5 w-5" />
-            Settings
-          </NavLink>
+
           <NavLink
             to="/trash"
             onClick={() => setIsMobileMenuOpen(false)}
@@ -449,13 +441,38 @@ export default function DashboardLayout() {
           </NavLink>
         </nav>
 
-        <div className="pt-4 border-t border-zinc-800 flex items-center gap-3">
-          <div className="h-9 w-9 rounded-full bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-sm">
-            {user?.name ? user.name.substring(0, 2).toUpperCase() : "U"}
+        <div className="pt-4 border-t border-zinc-800 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-full bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-sm">
+              {user?.name ? user.name.substring(0, 2).toUpperCase() : "U"}
+            </div>
+            <div className="text-left">
+              <p className="text-xs font-semibold text-zinc-200">{user?.name || "User"}</p>
+              <p className="text-[10px] text-zinc-500 capitalize">{user?.role || "Member"}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-xs font-semibold text-zinc-200">{user?.name || "User"}</p>
-            <p className="text-[10px] text-zinc-500 capitalize">{user?.role || "Member"}</p>
+          <div className="flex items-center gap-1">
+            <NavLink
+              to="/settings"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={({ isActive }) =>
+                `p-1.5 rounded-lg transition-colors cursor-pointer ${
+                  isActive 
+                    ? "text-indigo-400 bg-zinc-800/40" 
+                    : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/80"
+                }`
+              }
+              title="Settings"
+            >
+              <Settings className="h-4 w-4" />
+            </NavLink>
+            <button
+              onClick={handleLogout}
+              className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/80 transition-colors cursor-pointer"
+              title="Logout"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </aside>
