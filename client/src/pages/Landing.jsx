@@ -30,9 +30,6 @@ import {
   History,
   Download,
   Trash2,
-  Play,
-  Check,
-  FileText,
   ShieldAlert
 } from "lucide-react";
 
@@ -87,17 +84,56 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans transition-colors duration-300 overflow-hidden relative">
+      {/* Custom Styles Injection for Animations */}
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-12px); }
+        }
+        @keyframes pulse-glow {
+          0%, 100% { opacity: 0.5; transform: scale(1) translate(0, 0); }
+          50% { opacity: 0.8; transform: scale(1.05) translate(10px, -10px); }
+        }
+        @keyframes fade-in-up {
+          from { opacity: 0; transform: translateY(24px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+        .animate-pulse-glow {
+          animation: pulse-glow 8s ease-in-out infinite;
+        }
+        .animate-fade-in-up {
+          animation: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .hover-lift {
+          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.4s ease;
+        }
+        .hover-lift:hover {
+          transform: translateY(-6px) scale(1.01);
+          box-shadow: 0 20px 40px -15px rgba(99, 102, 241, 0.12);
+        }
+        .hover-lift-subtle {
+          transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+        }
+        .hover-lift-subtle:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 10px 20px -10px rgba(99, 102, 241, 0.1);
+        }
+      `}</style>
+
       {/* Background Gradients & Grids */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808007_1px,transparent_1px),linear-gradient(to_bottom,#80808007_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_40%,#000_80%,transparent_100%)] -z-10" />
-      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full bg-indigo-600/10 blur-3xl -z-10 animate-pulse" />
-      <div className="absolute top-1/3 right-1/4 w-[600px] h-[600px] rounded-full bg-violet-600/5 blur-3xl -z-10" />
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full bg-indigo-600/10 blur-3xl -z-10 animate-pulse-glow" />
+      <div className="absolute top-1/3 right-1/4 w-[600px] h-[600px] rounded-full bg-violet-600/5 blur-3xl -z-10 animate-pulse-glow" />
 
       {/* Navigation Header */}
       <nav className="border-b border-zinc-800/40 backdrop-blur-md sticky top-0 z-50 transition-colors bg-zinc-950/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-8">
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2.5 cursor-pointer">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg overflow-hidden shadow-md shadow-indigo-500/25">
                   <img src="/favicon/apple-touch-icon.png" alt="TrendPilot AI" className="w-full h-full object-cover rounded-lg" />
                 </div>
@@ -126,7 +162,7 @@ export default function Landing() {
               {isAuthenticated ? (
                 <Link
                   to="/dashboard"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl font-semibold text-sm shadow-md shadow-indigo-500/20 transition-all duration-200 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl font-semibold text-sm shadow-md shadow-indigo-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer"
                 >
                   Go to Dashboard
                   <ArrowRight className="h-4 w-4" />
@@ -141,7 +177,7 @@ export default function Landing() {
                   </Link>
                   <Link
                     to="/register"
-                    className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl font-semibold text-sm shadow-md shadow-indigo-500/20 transition-all duration-200 cursor-pointer"
+                    className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl font-semibold text-sm shadow-md shadow-indigo-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 cursor-pointer"
                   >
                     Get Started Free
                     <ArrowRight className="h-4 w-4" />
@@ -154,8 +190,8 @@ export default function Landing() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-20 pb-24 md:pt-28 md:pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-indigo-500/30 bg-indigo-500/5 text-indigo-400 text-xs font-semibold tracking-wide uppercase mb-6 animate-fade-in shadow-inner">
+      <section className="relative pt-20 pb-24 md:pt-28 md:pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center animate-fade-in-up">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-indigo-500/30 bg-indigo-500/5 text-indigo-400 text-xs font-semibold tracking-wide uppercase mb-6 shadow-inner">
           <Zap className="h-3.5 w-3.5" />
           Next-Gen AI Content Strategy
         </div>
@@ -198,7 +234,7 @@ export default function Landing() {
         </div>
 
         {/* Dashboard Mockup Representation */}
-        <div className="mt-16 md:mt-20 border border-zinc-800/80 rounded-2xl bg-zinc-900/30 backdrop-blur-md p-2 md:p-3 shadow-2xl relative">
+        <div className="mt-16 md:mt-20 border border-zinc-800/80 rounded-2xl bg-zinc-900/30 backdrop-blur-md p-2 md:p-3 shadow-2xl relative animate-float">
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-60 pointer-events-none rounded-2xl" />
           <div className="border border-zinc-800/40 rounded-xl overflow-hidden bg-zinc-950 text-left text-xs text-zinc-500 shadow-inner">
             {/* Mock Dashboard Top Bar */}
@@ -219,7 +255,7 @@ export default function Landing() {
             <div className="flex min-h-[260px] md:min-h-[350px]">
               {/* Mock Sidebar */}
               <div className="w-36 md:w-44 border-r border-zinc-900 p-3 hidden sm:flex flex-col gap-2">
-                <div className="h-7 bg-indigo-600/10 text-indigo-450 font-semibold px-2 rounded-lg flex items-center gap-1.5">
+                <div className="h-7 bg-indigo-600/10 text-indigo-455 font-semibold px-2 rounded-lg flex items-center gap-1.5">
                   <LayoutDashboard className="h-3.5 w-3.5" /> Overview
                 </div>
                 <div className="h-7 hover:bg-zinc-900 px-2 rounded-lg flex items-center gap-1.5">
@@ -298,7 +334,7 @@ export default function Landing() {
           <div className="text-center max-w-3xl mx-auto space-y-4">
             <h2 className="text-sm font-bold tracking-wider text-indigo-400 uppercase">The Challenge</h2>
             <p className="text-3xl sm:text-4xl font-extrabold font-heading text-zinc-100">
-              The tedious manual research routine is holding you back.
+              The tedious manual research routine<br/>is holding you back.
             </p>
             <p className="text-zinc-400 text-sm sm:text-base leading-relaxed">
               Modern creators and marketing teams spend hours manually scouring blogs, RSS feeds, YouTube channels, and competitor Facebook pages to identify what topics are trending, what their competitors are posting, and what angles are performing best.
@@ -307,7 +343,7 @@ export default function Landing() {
 
           <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Card 1 */}
-            <div className="p-6 rounded-2xl border border-zinc-900 bg-zinc-900/10 hover:border-rose-500/20 transition-all duration-300">
+            <div className="p-6 rounded-2xl border border-zinc-900 bg-zinc-900/10 hover-lift">
               <div className="h-10 w-10 rounded-xl bg-rose-500/10 text-rose-455 flex items-center justify-center mb-6">
                 <AlertCircle className="h-5 w-5" />
               </div>
@@ -318,7 +354,7 @@ export default function Landing() {
             </div>
 
             {/* Card 2 */}
-            <div className="p-6 rounded-2xl border border-zinc-900 bg-zinc-900/10 hover:border-rose-500/20 transition-all duration-300">
+            <div className="p-6 rounded-2xl border border-zinc-900 bg-zinc-900/10 hover-lift">
               <div className="h-10 w-10 rounded-xl bg-rose-500/10 text-rose-455 flex items-center justify-center mb-6">
                 <RefreshCw className="h-5 w-5" />
               </div>
@@ -329,7 +365,7 @@ export default function Landing() {
             </div>
 
             {/* Card 3 */}
-            <div className="p-6 rounded-2xl border border-zinc-900 bg-zinc-900/10 hover:border-rose-500/20 transition-all duration-300">
+            <div className="p-6 rounded-2xl border border-zinc-900 bg-zinc-900/10 hover-lift">
               <div className="h-10 w-10 rounded-xl bg-rose-500/10 text-rose-455 flex items-center justify-center mb-6">
                 <Flame className="h-5 w-5" />
               </div>
@@ -344,7 +380,7 @@ export default function Landing() {
 
       {/* Interactive Sandbox Section */}
       <section id="sandbox" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="border border-indigo-500/20 rounded-3xl bg-zinc-900/20 p-8 md:p-12 relative overflow-hidden">
+        <div className="border border-indigo-500/20 rounded-3xl bg-zinc-900/20 p-8 md:p-12 relative overflow-hidden hover-lift-subtle">
           <div className="absolute inset-0 bg-radial-gradient from-indigo-500/5 to-transparent pointer-events-none -z-10" />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -365,12 +401,12 @@ export default function Landing() {
                   value={sandboxTopic}
                   onChange={(e) => setSandboxTopic(e.target.value)}
                   disabled={sandboxState === "loading"}
-                  className="flex-1 min-h-[44px] px-4 rounded-xl bg-zinc-950 border border-zinc-800 focus:outline-none focus:border-indigo-500 text-sm font-medium transition-colors"
+                  className="flex-1 min-h-[44px] px-4 rounded-xl bg-zinc-955 border border-zinc-800 focus:outline-none focus:border-indigo-500 text-sm font-medium transition-colors"
                 />
                 <button
                   type="submit"
                   disabled={sandboxState === "loading" || !sandboxTopic.trim()}
-                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl font-semibold text-sm shadow-md transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl font-semibold text-sm shadow-md transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 hover:scale-[1.03] active:scale-[0.97]"
                 >
                   {sandboxState === "loading" ? (
                     <RefreshCw className="h-4.5 w-4.5 animate-spin" />
@@ -415,7 +451,7 @@ export default function Landing() {
               )}
 
               {sandboxState === "result" && (
-                <div className="space-y-5 animate-fade-in text-left">
+                <div className="space-y-5 animate-fade-in-up text-left">
                   <div className="flex items-center justify-between border-b border-zinc-900 pb-3">
                     <div>
                       <h4 className="font-extrabold text-sm text-zinc-150 capitalize">Report: &quot;{sandboxTopic}&quot;</h4>
@@ -472,7 +508,7 @@ export default function Landing() {
 
           <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Category 1: Multi-Channel Scraper Pipeline */}
-            <div className="p-8 border border-zinc-900 bg-zinc-900/10 rounded-3xl space-y-6">
+            <div className="p-8 border border-zinc-900 bg-zinc-900/10 rounded-3xl space-y-6 hover-lift">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-xl bg-indigo-600/10 text-indigo-500">
                   <Globe className="h-6 w-6" />
@@ -499,7 +535,7 @@ export default function Landing() {
             </div>
 
             {/* Category 2: AI Trend & Competitive Intelligence */}
-            <div className="p-8 border border-zinc-900 bg-zinc-900/10 rounded-3xl space-y-6">
+            <div className="p-8 border border-zinc-900 bg-zinc-900/10 rounded-3xl space-y-6 hover-lift">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-xl bg-indigo-600/10 text-indigo-500">
                   <Brain className="h-6 w-6" />
@@ -526,7 +562,7 @@ export default function Landing() {
             </div>
 
             {/* Category 3: Collaborative AI Content Workspace */}
-            <div className="p-8 border border-zinc-900 bg-zinc-900/10 rounded-3xl space-y-6">
+            <div className="p-8 border border-zinc-900 bg-zinc-900/10 rounded-3xl space-y-6 hover-lift">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-xl bg-indigo-600/10 text-indigo-500">
                   <MessageSquare className="h-6 w-6" />
@@ -553,7 +589,7 @@ export default function Landing() {
             </div>
 
             {/* Category 4: Enterprise Hub & Operations */}
-            <div className="p-8 border border-zinc-900 bg-zinc-900/10 rounded-3xl space-y-6">
+            <div className="p-8 border border-zinc-900 bg-zinc-900/10 rounded-3xl space-y-6 hover-lift">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-xl bg-indigo-600/10 text-indigo-500">
                   <Lock className="h-6 w-6" />
@@ -591,13 +627,13 @@ export default function Landing() {
               Future Roadmap
             </p>
             <p className="text-zinc-400 text-sm sm:text-base">
-              See what we are designing and building next to expand TrendPilot AI into a universal creator dashboard.
+              See what we are designing and building next to expand <br/>TrendPilot AI into a universal creator dashboard.
             </p>
           </div>
 
           <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6.5">
             {/* Item 1 */}
-            <div className="p-5.5 border border-zinc-900 bg-zinc-950/40 rounded-xl shadow-sm hover:border-zinc-800 transition-colors">
+            <div className="p-5.5 border border-zinc-900 bg-zinc-955/40 rounded-xl shadow-sm hover-lift-subtle">
               <div className="flex items-center gap-3 mb-4.5">
                 <div className="p-2 rounded bg-indigo-500/10 text-indigo-400">
                   <Chrome className="h-4.5 w-4.5" />
@@ -605,13 +641,13 @@ export default function Landing() {
                 <h4 className="font-bold text-sm text-zinc-150">Google Trends Integration</h4>
                 <span className="ml-auto text-[8px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-400 border border-zinc-800">Q3 2026</span>
               </div>
-              <p className="text-xs text-zinc-550 leading-relaxed">
+              <p className="text-xs text-zinc-555 leading-relaxed">
                 Connect search volume indices to track and match competitor keywords with actual search interest.
               </p>
             </div>
 
             {/* Item 2 */}
-            <div className="p-5.5 border border-zinc-900 bg-zinc-950/40 rounded-xl shadow-sm hover:border-zinc-800 transition-colors">
+            <div className="p-5.5 border border-zinc-900 bg-zinc-955/40 rounded-xl shadow-sm hover-lift-subtle">
               <div className="flex items-center gap-3 mb-4.5">
                 <div className="p-2 rounded bg-indigo-500/10 text-indigo-400">
                   <MessageSquare className="h-4.5 w-4.5" />
@@ -619,13 +655,13 @@ export default function Landing() {
                 <h4 className="font-bold text-sm text-zinc-150">Reddit Trend Analysis</h4>
                 <span className="ml-auto text-[8px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-400 border border-zinc-800">Q3 2026</span>
               </div>
-              <p className="text-xs text-zinc-550 leading-relaxed">
+              <p className="text-xs text-zinc-555 leading-relaxed">
                 Monitor organic discussions and subreddits to capture user complaints and questions before they reach blogs.
               </p>
             </div>
 
             {/* Item 3 */}
-            <div className="p-5.5 border border-zinc-900 bg-zinc-950/40 rounded-xl shadow-sm hover:border-zinc-800 transition-colors">
+            <div className="p-5.5 border border-zinc-900 bg-zinc-955/40 rounded-xl shadow-sm hover-lift-subtle">
               <div className="flex items-center gap-3 mb-4.5">
                 <div className="p-2 rounded bg-indigo-500/10 text-indigo-400">
                   <Instagram className="h-4.5 w-4.5" />
@@ -633,13 +669,13 @@ export default function Landing() {
                 <h4 className="font-bold text-sm text-zinc-150">Instagram Scraper</h4>
                 <span className="ml-auto text-[8px] font-bold tracking-wide uppercase px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-400 border border-zinc-800">Q4 2026</span>
               </div>
-              <p className="text-xs text-zinc-550 leading-relaxed">
+              <p className="text-xs text-zinc-555 leading-relaxed">
                 Track Instagram reels, post captions, and growth metrics programmatically using headless scraper systems.
               </p>
             </div>
 
             {/* Item 4 */}
-            <div className="p-5.5 border border-zinc-900 bg-zinc-950/40 rounded-xl shadow-sm hover:border-zinc-800 transition-colors">
+            <div className="p-5.5 border border-zinc-900 bg-zinc-955/40 rounded-xl shadow-sm hover-lift-subtle">
               <div className="flex items-center gap-3 mb-4.5">
                 <div className="p-2 rounded bg-indigo-500/10 text-indigo-400">
                   <Calendar className="h-4.5 w-4.5" />
@@ -653,7 +689,7 @@ export default function Landing() {
             </div>
 
             {/* Item 5 */}
-            <div className="p-5.5 border border-zinc-900 bg-zinc-950/40 rounded-xl shadow-sm hover:border-zinc-800 transition-colors">
+            <div className="p-5.5 border border-zinc-900 bg-zinc-955/40 rounded-xl shadow-sm hover-lift-subtle">
               <div className="flex items-center gap-3 mb-4.5">
                 <div className="p-2 rounded bg-indigo-500/10 text-indigo-400">
                   <Users className="h-4.5 w-4.5" />
@@ -667,7 +703,7 @@ export default function Landing() {
             </div>
 
             {/* Item 6 */}
-            <div className="p-5.5 border border-zinc-900 bg-zinc-950/40 rounded-xl shadow-sm hover:border-zinc-800 transition-colors">
+            <div className="p-5.5 border border-zinc-900 bg-zinc-955/40 rounded-xl shadow-sm hover-lift-subtle">
               <div className="flex items-center gap-3 mb-4.5">
                 <div className="p-2 rounded bg-indigo-500/10 text-indigo-400">
                   <Bell className="h-4.5 w-4.5" />
@@ -681,7 +717,7 @@ export default function Landing() {
             </div>
 
             {/* Item 7 */}
-            <div className="p-5.5 border border-zinc-900 bg-zinc-950/40 rounded-xl shadow-sm hover:border-zinc-800 transition-colors">
+            <div className="p-5.5 border border-zinc-900 bg-zinc-955/40 rounded-xl shadow-sm hover-lift-subtle">
               <div className="flex items-center gap-3 mb-4.5">
                 <div className="p-2 rounded bg-indigo-500/10 text-indigo-400">
                   <Brain className="h-4.5 w-4.5" />
@@ -695,7 +731,7 @@ export default function Landing() {
             </div>
 
             {/* Item 8 */}
-            <div className="p-5.5 border border-zinc-900 bg-zinc-950/40 rounded-xl shadow-sm hover:border-zinc-800 transition-colors">
+            <div className="p-5.5 border border-zinc-900 bg-zinc-955/40 rounded-xl shadow-sm hover-lift-subtle">
               <div className="flex items-center gap-3 mb-4.5">
                 <div className="p-2 rounded bg-indigo-500/10 text-indigo-400">
                   <TrendingUp className="h-4.5 w-4.5" />
@@ -709,7 +745,7 @@ export default function Landing() {
             </div>
 
             {/* Item 9 */}
-            <div className="p-5.5 border border-zinc-900 bg-zinc-950/40 rounded-xl shadow-sm hover:border-zinc-800 transition-colors">
+            <div className="p-5.5 border border-zinc-900 bg-zinc-955/40 rounded-xl shadow-sm hover-lift-subtle">
               <div className="flex items-center gap-3 mb-4.5">
                 <div className="p-2 rounded bg-indigo-500/10 text-indigo-400">
                   <ShieldAlert className="h-4.5 w-4.5" />
@@ -727,17 +763,17 @@ export default function Landing() {
 
       {/* CTA Section */}
       <section className="py-20 relative max-w-7xl mx-auto text-center px-4">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full bg-indigo-600/10 blur-3xl -z-10" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full bg-indigo-600/10 blur-3xl -z-10 animate-pulse-glow" />
         <h2 className="text-2xl sm:text-3xl font-black font-heading text-zinc-100">
           Ready to discover your next viral content gap?
         </h2>
         <p className="mt-3.5 text-zinc-555 text-xs sm:text-sm max-w-xl mx-auto">
-          Start leveraging automated content recommendations today. Sign up for a free plan—no credit card required.
+          Start leveraging automated content recommendations today.<br/> Sign up for a free plan—no credit card required.
         </p>
         <div className="mt-7">
           <Link
             to={isAuthenticated ? "/dashboard" : "/register"}
-            className="inline-flex items-center gap-1.5 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl font-semibold text-sm shadow-lg shadow-indigo-500/20 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white rounded-xl font-semibold text-sm shadow-lg shadow-indigo-500/20 cursor-pointer hover:scale-[1.03] active:scale-[0.97]"
           >
             {isAuthenticated ? "Go to Dashboard" : "Create Your Account"}
             <ArrowRight className="h-4.5 w-4.5" />
@@ -749,8 +785,8 @@ export default function Landing() {
       <footer className="border-t border-zinc-900 py-10 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs text-zinc-500 space-y-4">
           <div className="flex items-center justify-center gap-2">
-            <div className="flex h-5 w-5 items-center justify-center rounded bg-indigo-600">
-              <Sparkles className="h-3 w-3 text-white" />
+            <div className="flex h-5 w-5 items-center justify-center rounded overflow-hidden">
+              <img src="/favicon/apple-touch-icon.png" alt="TrendPilot AI" className="w-full h-full object-cover rounded" />
             </div>
             <span className="font-bold text-zinc-500 font-heading">TrendPilot AI</span>
           </div>
