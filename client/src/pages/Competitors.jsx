@@ -361,19 +361,19 @@ ${beatenOutput.contentAssets?.visualIdea}
         <div className="space-y-8">
           {/* Scorecards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-2">
+            <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-2">
               <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-wider">Total Competitors</span>
               <p className="text-2xl font-bold text-zinc-100">{competitors.length}</p>
             </div>
-            <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-2">
+            <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-2">
               <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-wider">Scraped Posts</span>
               <p className="text-2xl font-bold text-zinc-100">{posts.length}</p>
             </div>
-            <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-2">
+            <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-2">
               <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-wider">Formats Analyzed</span>
               <p className="text-2xl font-bold text-zinc-100">8 Formats</p>
             </div>
-            <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-2">
+            <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-2">
               <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-wider">AI Content Gaps</span>
               <p className="text-2xl font-bold text-indigo-400">4 Opportunities</p>
             </div>
@@ -384,17 +384,17 @@ ${beatenOutput.contentAssets?.visualIdea}
             <div className="lg:col-span-1 space-y-5">
               <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Tracked Pages</h3>
               {compsLoading ? (
-                <div className="h-20 bg-zinc-950/40 border border-zinc-850 animate-pulse rounded-2xl" />
+                <div className="h-20 bg-zinc-950/40 border border-zinc-800 animate-pulse rounded-2xl" />
               ) : competitors.length === 0 ? (
-                <div className="p-8 border border-zinc-850 border-dashed rounded-2xl text-center">
-                  <span className="text-xs text-zinc-550">No competitors added yet.</span>
+                <div className="p-8 border border-zinc-800 border-dashed rounded-2xl text-center">
+                  <span className="text-xs text-zinc-500">No competitors added yet.</span>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {competitors.map((comp) => (
-                    <div key={comp._id} className="p-4 border border-zinc-850 bg-zinc-900/10 rounded-2xl flex items-center justify-between gap-4">
+                    <div key={comp._id} className="p-4 border border-zinc-800 bg-zinc-900/10 rounded-2xl flex items-center justify-between gap-4">
                       <div className="flex items-center gap-3 truncate">
-                        <div className="h-10 w-10 rounded-xl bg-zinc-950 border border-zinc-850 flex items-center justify-center font-bold text-indigo-400">
+                        <div className="h-10 w-10 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-center font-bold text-indigo-400">
                           {comp.brandName.substring(0, 2).toUpperCase()}
                         </div>
                         <div className="truncate text-left">
@@ -406,14 +406,14 @@ ${beatenOutput.contentAssets?.visualIdea}
                         <button
                           onClick={() => scanMutation.mutate(comp._id)}
                           disabled={scanMutation.isPending}
-                          className="p-2 bg-zinc-950 hover:bg-zinc-800 border border-zinc-850 rounded-lg text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
+                          className="p-2 bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 rounded-lg text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
                           title="Scan Feeds"
                         >
                           <RefreshCw className={`h-3.5 w-3.5 ${scanMutation.isPending ? "animate-spin" : ""}`} />
                         </button>
                         <button
                           onClick={() => deleteMutation.mutate(comp._id)}
-                          className="p-2 bg-zinc-950 hover:bg-red-950/40 border border-zinc-850 hover:border-red-900/35 rounded-lg text-zinc-400 hover:text-red-400 transition-colors cursor-pointer"
+                          className="p-2 bg-zinc-950 hover:bg-red-950/40 border border-zinc-800 hover:border-red-900/35 rounded-lg text-zinc-400 hover:text-red-400 transition-colors cursor-pointer"
                           title="Delete Competitor"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -429,15 +429,15 @@ ${beatenOutput.contentAssets?.visualIdea}
             <div className="lg:col-span-2 space-y-5">
               <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Latest Competitor Activity</h3>
               {postsLoading ? (
-                <div className="h-40 bg-zinc-950/40 border border-zinc-850 animate-pulse rounded-2xl" />
+                <div className="h-40 bg-zinc-950/40 border border-zinc-800 animate-pulse rounded-2xl" />
               ) : posts.length === 0 ? (
-                <div className="p-12 border border-zinc-850 border-dashed rounded-2xl text-center">
-                  <span className="text-xs text-zinc-550">No competitor posts crawled yet. Click scan on a competitor.</span>
+                <div className="p-12 border border-zinc-800 border-dashed rounded-2xl text-center">
+                  <span className="text-xs text-zinc-500">No competitor posts crawled yet. Click scan on a competitor.</span>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {posts.map((post) => (
-                    <div key={post._id} className="p-5 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-4 text-left">
+                    <div key={post._id} className="p-5 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-4 text-left">
                       <div className="flex justify-between items-start gap-4">
                         <div className="flex items-center gap-3">
                           <div className="h-8 w-8 rounded-lg bg-indigo-600/10 border border-indigo-500/25 flex items-center justify-center font-bold text-indigo-400 text-xs">
@@ -445,12 +445,12 @@ ${beatenOutput.contentAssets?.visualIdea}
                           </div>
                           <div>
                             <span className="text-xs font-bold text-zinc-200">{post.competitorId?.brandName}</span>
-                            <p className="text-[10px] text-zinc-550 mt-0.5">
+                            <p className="text-[10px] text-zinc-500 mt-0.5">
                               Ingested on {new Date(post.publishedAt).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
-                        <span className="px-2 py-1 bg-zinc-950 border border-zinc-850 rounded-lg text-[9px] font-bold text-indigo-400 uppercase tracking-wider">
+                        <span className="px-2 py-1 bg-zinc-950 border border-zinc-800 rounded-lg text-[9px] font-bold text-indigo-400 uppercase tracking-wider">
                           {post.format}
                         </span>
                       </div>
@@ -462,7 +462,7 @@ ${beatenOutput.contentAssets?.visualIdea}
                         </p>
                       </div>
 
-                      <div className="flex justify-between items-center pt-2 border-t border-zinc-850/50">
+                      <div className="flex justify-between items-center pt-2 border-t border-zinc-800/50">
                         <div className="flex gap-4 text-[10px] text-zinc-500 font-semibold">
                           <span>👍 {post.engagement?.likes} likes</span>
                           <span>💬 {post.engagement?.comments} comments</span>
@@ -497,7 +497,7 @@ ${beatenOutput.contentAssets?.visualIdea}
       {/* Compare Tab Content */}
       {activeTab === "compare" && (
         <div className="space-y-8">
-          <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-4">
+          <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-4">
             <div className="space-y-1">
               <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Compare Competitors</h3>
               <p className="text-xs text-zinc-500">Select multiple competitors to generate comparative metrics.</p>
@@ -510,7 +510,7 @@ ${beatenOutput.contentAssets?.visualIdea}
                   className={`flex items-center gap-3 p-3.5 border rounded-2xl cursor-pointer transition-colors ${
                     selectedCompetitors.includes(comp._id)
                       ? "border-indigo-500/50 bg-indigo-950/10 text-indigo-400"
-                      : "border-zinc-850 bg-zinc-950 hover:bg-zinc-900/40 text-zinc-300"
+                      : "border-zinc-800 bg-zinc-950 hover:bg-zinc-900/40 text-zinc-300"
                   }`}
                 >
                   <input
@@ -547,7 +547,7 @@ ${beatenOutput.contentAssets?.visualIdea}
 
           {/* Render Comparison Report */}
           {compareMutation.isPending ? (
-            <div className="h-40 border border-zinc-850 bg-zinc-900/10 rounded-2xl flex items-center justify-center animate-pulse">
+            <div className="h-40 border border-zinc-800 bg-zinc-900/10 rounded-2xl flex items-center justify-center animate-pulse">
               <span className="text-xs text-zinc-400">AI is compiling report metrics...</span>
             </div>
           ) : activeComparisonReport ? (
@@ -555,7 +555,7 @@ ${beatenOutput.contentAssets?.visualIdea}
               {/* Matrix of Strengths / Weaknesses */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Strengths */}
-                <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-4">
+                <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-4">
                   <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-2">
                     <Award className="h-4 w-4 text-emerald-400" />
                     Competitor Core Strengths
@@ -573,7 +573,7 @@ ${beatenOutput.contentAssets?.visualIdea}
                 </div>
 
                 {/* Weaknesses */}
-                <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-4">
+                <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-4">
                   <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-2">
                     <ShieldAlert className="h-4 w-4 text-rose-400" />
                     Weakness & Content Gaps
@@ -592,7 +592,7 @@ ${beatenOutput.contentAssets?.visualIdea}
               </div>
 
               {/* In-depth comparative metrics table */}
-              <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-4 text-left">
+              <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-4 text-left">
                 <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Topics Covered Comparison</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs text-zinc-400">
@@ -620,14 +620,14 @@ ${beatenOutput.contentAssets?.visualIdea}
               </div>
 
               {/* Opportunities list */}
-              <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-4 text-left">
+              <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-4 text-left">
                 <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
                   <Target className="h-4 w-4 text-indigo-400" />
                   Identified Content Gap Opportunities
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {activeComparisonReport.contentGaps?.map((gap, idx) => (
-                    <div key={idx} className="p-4 bg-zinc-950 border border-zinc-850 rounded-xl space-y-2">
+                    <div key={idx} className="p-4 bg-zinc-950 border border-zinc-800 rounded-xl space-y-2">
                       <div className="flex justify-between items-center">
                         <span className="text-xs font-bold text-zinc-200">{gap.topic}</span>
                         <span className="px-2 py-0.5 bg-indigo-950/60 border border-indigo-900 text-indigo-400 text-[8px] font-bold rounded uppercase">
@@ -641,8 +641,8 @@ ${beatenOutput.contentAssets?.visualIdea}
               </div>
             </div>
           ) : (
-            <div className="p-12 border border-zinc-850 border-dashed rounded-2xl text-center">
-              <span className="text-xs text-zinc-550">Select competitors and click compile to generate AI reports.</span>
+            <div className="p-12 border border-zinc-800 border-dashed rounded-2xl text-center">
+              <span className="text-xs text-zinc-500">Select competitors and click compile to generate AI reports.</span>
             </div>
           )}
         </div>
@@ -651,7 +651,7 @@ ${beatenOutput.contentAssets?.visualIdea}
       {/* Weekly Strategy Tab */}
       {activeTab === "strategy" && (
         <div className="space-y-8">
-          <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-left">
+          <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-left">
             <div>
               <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Weekly Content Ingestion Strategy</h3>
               <p className="text-xs text-zinc-500 mt-1">Get customized content posting schedule recommendations specifically matching your Brand Profile details.</p>
@@ -677,17 +677,17 @@ ${beatenOutput.contentAssets?.visualIdea}
 
           {/* Render Strategy Plan */}
           {weeklyStrategyMutation.isPending ? (
-            <div className="h-40 border border-zinc-850 bg-zinc-900/10 rounded-2xl flex items-center justify-center animate-pulse">
+            <div className="h-40 border border-zinc-800 bg-zinc-900/10 rounded-2xl flex items-center justify-center animate-pulse">
               <span className="text-xs text-zinc-400">AI is compiling customized weekly schedules...</span>
             </div>
           ) : activeStrategyReport ? (
             <div className="space-y-8 text-left">
               {/* Posting Calendar grid */}
-              <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-4">
+              <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-4">
                 <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Weekly Posting Calendar</h3>
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                   {activeStrategyReport.postingCalendar?.map((cal, idx) => (
-                    <div key={idx} className="p-4 bg-zinc-950 border border-zinc-850 rounded-xl space-y-2 flex flex-col justify-between">
+                    <div key={idx} className="p-4 bg-zinc-950 border border-zinc-800 rounded-xl space-y-2 flex flex-col justify-between">
                       <div className="space-y-1">
                         <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">{cal.day}</span>
                         <h4 className="text-xs font-bold text-zinc-200">{cal.topic}</h4>
@@ -709,10 +709,10 @@ ${beatenOutput.contentAssets?.visualIdea}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {activeStrategyReport.contentIdeas?.map((idea) => (
-                    <div key={idea.id} className="p-5 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-3">
+                    <div key={idea.id} className="p-5 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-3">
                       <div className="flex justify-between items-start gap-4">
                         <h4 className="text-xs font-bold text-zinc-200">{idea.title}</h4>
-                        <span className="px-2 py-0.5 bg-zinc-950 border border-zinc-850 rounded text-[9px] font-bold text-indigo-400 uppercase tracking-wider">
+                        <span className="px-2 py-0.5 bg-zinc-950 border border-zinc-800 rounded text-[9px] font-bold text-indigo-400 uppercase tracking-wider">
                           {idea.recommendedFormat}
                         </span>
                       </div>
@@ -731,8 +731,8 @@ ${beatenOutput.contentAssets?.visualIdea}
               </div>
             </div>
           ) : (
-            <div className="p-12 border border-zinc-850 border-dashed rounded-2xl text-center">
-              <span className="text-xs text-zinc-550">Click generate to compile personalized AI Strategy recommendations.</span>
+            <div className="p-12 border border-zinc-800 border-dashed rounded-2xl text-center">
+              <span className="text-xs text-zinc-500">Click generate to compile personalized AI Strategy recommendations.</span>
             </div>
           )}
         </div>
@@ -740,13 +740,13 @@ ${beatenOutput.contentAssets?.visualIdea}
 
       {/* Brand Profile Tab Content */}
       {activeTab === "profile" && (
-        <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl text-left space-y-6">
+        <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl text-left space-y-6">
           <div className="space-y-1 border-b border-zinc-800 pb-3">
             <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
               <Target className="h-4.5 w-4.5 text-indigo-400" />
               Configure Creator Brand Profile
             </h3>
-            <p className="text-xs text-zinc-550 leading-relaxed font-light">
+            <p className="text-xs text-zinc-500 leading-relaxed font-light">
               Saving your target details lets the AI personalize all content gap alerts, formats adjustments, and strategy calendars.
             </p>
           </div>
@@ -760,7 +760,7 @@ ${beatenOutput.contentAssets?.visualIdea}
                   placeholder="e.g. Programming Hero"
                   value={profileName}
                   onChange={(e) => setProfileName(e.target.value)}
-                  className="w-full h-10 px-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none focus:border-indigo-500"
+                  className="w-full h-10 px-3 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-300 focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
@@ -771,7 +771,7 @@ ${beatenOutput.contentAssets?.visualIdea}
                   placeholder="e.g. EdTech, SaaS, Healthcare"
                   value={profileIndustry}
                   onChange={(e) => setProfileIndustry(e.target.value)}
-                  className="w-full h-10 px-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none focus:border-indigo-500"
+                  className="w-full h-10 px-3 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-300 focus:outline-none focus:border-indigo-500"
                 />
               </div>
             </div>
@@ -783,7 +783,7 @@ ${beatenOutput.contentAssets?.visualIdea}
                 value={profileAudience}
                 onChange={(e) => setProfileAudience(e.target.value)}
                 rows={3}
-                className="w-full p-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none focus:border-indigo-500 placeholder-zinc-700 font-light"
+                className="w-full p-3 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-300 focus:outline-none focus:border-indigo-500 placeholder-zinc-600 font-light"
               />
             </div>
 
@@ -794,7 +794,7 @@ ${beatenOutput.contentAssets?.visualIdea}
                 placeholder="e.g. Friendly & Educational, Bengali-English mixed, conversational"
                 value={profileTone}
                 onChange={(e) => setProfileTone(e.target.value)}
-                className="w-full h-10 px-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none focus:border-indigo-500"
+                className="w-full h-10 px-3 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-300 focus:outline-none focus:border-indigo-500"
               />
             </div>
 
@@ -828,7 +828,7 @@ ${beatenOutput.contentAssets?.visualIdea}
                   placeholder="e.g. OpenAI"
                   value={brandNameInput}
                   onChange={(e) => setBrandNameInput(e.target.value)}
-                  className="w-full h-10 px-3 bg-zinc-900 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none focus:border-indigo-500"
+                  className="w-full h-10 px-3 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-zinc-300 focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
@@ -840,7 +840,7 @@ ${beatenOutput.contentAssets?.visualIdea}
                   placeholder="https://www.facebook.com/OpenAI"
                   value={pageUrlInput}
                   onChange={(e) => setPageUrlInput(e.target.value)}
-                  className="w-full h-10 px-3 bg-zinc-900 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none focus:border-indigo-500"
+                  className="w-full h-10 px-3 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-zinc-300 focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
@@ -849,7 +849,7 @@ ${beatenOutput.contentAssets?.visualIdea}
                 <select
                   value={categoryInput}
                   onChange={(e) => setCategoryInput(e.target.value)}
-                  className="w-full h-10 px-3 bg-zinc-900 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer"
+                  className="w-full h-10 px-3 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer"
                 >
                   <option value="Technology">Technology & AI</option>
                   <option value="EdTech">EdTech & Courses</option>
@@ -862,7 +862,7 @@ ${beatenOutput.contentAssets?.visualIdea}
                 <button
                   type="button"
                   onClick={() => setIsAddOpen(false)}
-                  className="px-4 py-2 border border-zinc-850 text-zinc-400 hover:text-zinc-200 text-xs rounded-xl transition-colors cursor-pointer"
+                  className="px-4 py-2 border border-zinc-800 text-zinc-400 hover:text-zinc-200 text-xs rounded-xl transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -916,21 +916,21 @@ ${beatenOutput.contentAssets?.visualIdea}
                 <div className="space-y-5">
                   <div className="space-y-1">
                     <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">Upgraded Facebook Post</span>
-                    <div className="p-4 bg-zinc-900 border border-zinc-850 rounded-2xl text-xs text-zinc-200 whitespace-pre-line leading-relaxed font-light">
+                    <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-2xl text-xs text-zinc-200 whitespace-pre-line leading-relaxed font-light">
                       {beatenOutput.contentAssets?.facebookPost || beatenOutput.contentAssets?.betterCaption}
                     </div>
                   </div>
 
                   <div className="space-y-1">
                     <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">LinkedIn Professional Post</span>
-                    <div className="p-4 bg-zinc-900 border border-zinc-850 rounded-2xl text-xs text-zinc-200 whitespace-pre-line leading-relaxed font-light">
+                    <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-2xl text-xs text-zinc-200 whitespace-pre-line leading-relaxed font-light">
                       {beatenOutput.contentAssets?.linkedinPost}
                     </div>
                   </div>
 
                   <div className="space-y-1">
                     <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">Upgraded Twitter/X Thread</span>
-                    <div className="p-4 bg-zinc-900 border border-zinc-850 rounded-2xl text-xs text-zinc-200 space-y-3 font-light leading-relaxed">
+                    <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-2xl text-xs text-zinc-200 space-y-3 font-light leading-relaxed">
                       {beatenOutput.contentAssets?.twitterThread?.map((t, idx) => (
                         <div key={idx} className="pb-3 border-b border-zinc-800 last:border-b-0">
                           <span className="text-[9px] text-zinc-500 font-bold uppercase block mb-1">Tweet {idx + 1}</span>
@@ -942,14 +942,14 @@ ${beatenOutput.contentAssets?.visualIdea}
 
                   <div className="space-y-1">
                     <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">Blog & SEO Draft</span>
-                    <div className="p-4 bg-zinc-900 border border-zinc-850 rounded-2xl text-xs text-zinc-200 whitespace-pre-line leading-relaxed font-mono font-light">
+                    <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-2xl text-xs text-zinc-200 whitespace-pre-line leading-relaxed font-mono font-light">
                       {beatenOutput.contentAssets?.blogVersion}
                     </div>
                   </div>
 
                   <div className="space-y-1">
                     <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">Visual mockup guidelines</span>
-                    <div className="p-4 bg-zinc-900 border border-zinc-850 rounded-2xl text-xs text-zinc-200 leading-relaxed font-light">
+                    <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-2xl text-xs text-zinc-200 leading-relaxed font-light">
                       {beatenOutput.contentAssets?.visualIdea}
                     </div>
                   </div>
@@ -963,14 +963,14 @@ ${beatenOutput.contentAssets?.visualIdea}
                 <button
                   onClick={handleCopyBeatText}
                   disabled={!beatenOutput}
-                  className="px-4 py-2 border border-zinc-850 text-zinc-300 hover:text-white text-xs rounded-xl flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
+                  className="px-4 py-2 border border-zinc-800 text-zinc-300 hover:text-white text-xs rounded-xl flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
                 >
                   {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
                   Copy Master Document
                 </button>
                 <button
                   onClick={() => setIsBeatOpen(false)}
-                  className="px-4 py-2 bg-zinc-850 hover:bg-zinc-800 text-zinc-200 text-xs rounded-xl transition-colors cursor-pointer"
+                  className="px-4 py-2 bg-zinc-800 hover:bg-zinc-800 text-zinc-200 text-xs rounded-xl transition-colors cursor-pointer"
                 >
                   Close
                 </button>

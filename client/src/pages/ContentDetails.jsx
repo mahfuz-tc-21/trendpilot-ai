@@ -122,7 +122,7 @@ export default function ContentDetails() {
       <div className="flex items-center gap-4">
         <button
           onClick={() => navigate(-1)}
-          className="p-2 border border-zinc-850 hover:border-zinc-800 bg-zinc-900/10 rounded-xl text-zinc-400 hover:text-zinc-100 transition-all cursor-pointer"
+          className="p-2 border border-zinc-800 hover:border-zinc-800 bg-zinc-900/10 rounded-xl text-zinc-400 hover:text-zinc-100 transition-all cursor-pointer"
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
@@ -167,7 +167,7 @@ export default function ContentDetails() {
           {activeTab === "overview" && (
             <div className="space-y-6 text-left">
               {/* Card info */}
-              <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-4">
+              <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-4">
                 <h3 className="text-sm font-bold text-zinc-200 uppercase tracking-wider">
                   Source Metadata
                 </h3>
@@ -202,7 +202,7 @@ export default function ContentDetails() {
               </div>
 
               {/* Raw content body */}
-              <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-3">
+              <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-3">
                 <h3 className="text-sm font-bold text-zinc-200 uppercase tracking-wider">
                   Raw Ingested Text / Description
                 </h3>
@@ -219,7 +219,7 @@ export default function ContentDetails() {
               {analysis ? (
                 <>
                   {/* Summary card */}
-                  <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-4">
+                  <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-4">
                     <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/15 uppercase">
                       AI Executive Summary
                     </span>
@@ -229,7 +229,7 @@ export default function ContentDetails() {
                   </div>
 
                   {/* Bullet points */}
-                  <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-4">
+                  <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-4">
                     <h3 className="text-sm font-bold text-zinc-200 uppercase tracking-wider">
                       Key Takeaways & Points
                     </h3>
@@ -245,7 +245,7 @@ export default function ContentDetails() {
 
                   {/* Keywords and tags */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="p-5 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-3">
+                    <div className="p-5 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-3">
                       <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
                         Analyzed Topics
                       </span>
@@ -257,7 +257,7 @@ export default function ContentDetails() {
                         ))}
                       </div>
                     </div>
-                    <div className="p-5 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-3">
+                    <div className="p-5 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-3">
                       <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
                         Extracted Keywords
                       </span>
@@ -285,7 +285,7 @@ export default function ContentDetails() {
               {recommendation && recommendation.competitorAnalysis ? (
                 <div className="grid grid-cols-1 gap-6">
                   {/* Viral factors */}
-                  <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-3">
+                  <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-3">
                     <h4 className="text-sm font-bold text-orange-400 uppercase tracking-wider flex items-center gap-2">
                       <Sparkles className="h-4.5 w-4.5" />
                       Viral Factors (Why it worked)
@@ -296,7 +296,7 @@ export default function ContentDetails() {
                   </div>
 
                   {/* Gaps */}
-                  <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-3">
+                  <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-3">
                     <h4 className="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
                       <BookOpen className="h-4.5 w-4.5" />
                       Missed Opportunities
@@ -307,7 +307,7 @@ export default function ContentDetails() {
                   </div>
 
                   {/* Beat strategy */}
-                  <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-3">
+                  <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-3">
                     <h4 className="text-sm font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-2">
                       <Star className="h-4.5 w-4.5" />
                       How You Can Beat It
@@ -333,7 +333,7 @@ export default function ContentDetails() {
                   {recommendation.platformStrategy.map((strat) => (
                     <div
                       key={strat.platform}
-                      className="p-5 border border-zinc-850 bg-zinc-950/30 rounded-2xl flex flex-col md:flex-row justify-between gap-5 hover:border-zinc-800 transition-colors"
+                      className="p-5 border border-zinc-800 bg-zinc-950/30 rounded-2xl flex flex-col md:flex-row justify-between gap-5 hover:border-zinc-800 transition-colors"
                     >
                       <div className="space-y-3 flex-1">
                         <div className="flex flex-wrap gap-3 items-center">
@@ -393,7 +393,7 @@ export default function ContentDetails() {
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start text-left">
               {/* Generation Controls / Editor Panel (col-span-3) */}
               <div className="lg:col-span-3 space-y-4">
-                <div className="p-5 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-4">
+                <div className="p-5 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-4">
                   <h3 className="text-sm font-bold text-zinc-200 uppercase tracking-wider">
                     Content Configuration
                   </h3>
@@ -406,7 +406,7 @@ export default function ContentDetails() {
                       <select
                         value={studioFormat}
                         onChange={(e) => setStudioFormat(e.target.value)}
-                        className="w-full h-10 px-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer"
+                        className="w-full h-10 px-3 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer"
                       >
                         <option value="LinkedIn">LinkedIn Post</option>
                         <option value="Twitter">Twitter Thread</option>
@@ -426,7 +426,7 @@ export default function ContentDetails() {
                         placeholder="e.g. Beginner friendly, bold hook..."
                         value={studioInstructions}
                         onChange={(e) => setStudioInstructions(e.target.value)}
-                        className="w-full h-10 px-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none placeholder-zinc-650"
+                        className="w-full h-10 px-3 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-300 focus:outline-none placeholder-zinc-600"
                       />
                     </div>
                   </div>
@@ -442,7 +442,7 @@ export default function ContentDetails() {
 
                 {/* Editor Textarea */}
                 {generatedDraft && (
-                  <div className="p-5 border border-zinc-850 bg-zinc-900/15 rounded-2xl space-y-4">
+                  <div className="p-5 border border-zinc-800 bg-zinc-900/15 rounded-2xl space-y-4">
                     <div className="flex justify-between items-center border-b border-zinc-800/80 pb-3">
                       <span className="text-xs font-bold text-zinc-300">Generated Markdown Draft</span>
                       <div className="flex gap-2">
@@ -475,7 +475,7 @@ export default function ContentDetails() {
               </div>
 
               {/* Interactive Chat Refinement (col-span-2) */}
-              <div className="lg:col-span-2 p-5 border border-zinc-850 bg-zinc-900/10 rounded-2xl flex flex-col h-[580px] justify-between">
+              <div className="lg:col-span-2 p-5 border border-zinc-800 bg-zinc-900/10 rounded-2xl flex flex-col h-[580px] justify-between">
                 <div className="space-y-4 flex-1 flex flex-col justify-between overflow-hidden">
                   <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider border-b border-zinc-800/85 pb-3">
                     Refine with AI Chat
@@ -484,7 +484,7 @@ export default function ContentDetails() {
                   {/* Chat message logs */}
                   <div className="flex-grow overflow-y-auto space-y-3 p-1 max-h-[420px]">
                     {chatHistory.length === 0 ? (
-                      <div className="h-full flex flex-col items-center justify-center text-center text-zinc-650 text-xs p-4 gap-2">
+                      <div className="h-full flex flex-col items-center justify-center text-center text-zinc-600 text-xs p-4 gap-2">
                         <Sparkles className="h-8 w-8 text-zinc-800" />
                         <span>Generate a master draft first, then ask AI to refine, translate, shorten, or rewrite.</span>
                       </div>
@@ -515,14 +515,14 @@ export default function ContentDetails() {
                 </div>
 
                 {/* Form Input */}
-                <form onSubmit={handleSendChat} className="flex gap-2 pt-4 border-t border-zinc-850">
+                <form onSubmit={handleSendChat} className="flex gap-2 pt-4 border-t border-zinc-800">
                   <input
                     type="text"
                     placeholder="e.g. Translate to Bangla, Shorten, Add CTA..."
                     value={chatPrompt}
                     onChange={(e) => setChatPrompt(e.target.value)}
                     disabled={refineMutation.isPending || !generatedDraft}
-                    className="flex-grow h-10 px-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-zinc-800 disabled:opacity-50"
+                    className="flex-grow h-10 px-3 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-zinc-800 disabled:opacity-50"
                   />
                   <button
                     type="submit"
@@ -539,7 +539,7 @@ export default function ContentDetails() {
 
         {/* Right Side: Quick Stats Column */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="p-5 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-4 text-left">
+          <div className="p-5 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-4 text-left">
             <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider border-b border-zinc-800/80 pb-2">
               Growth Metrics
             </h3>
@@ -585,7 +585,7 @@ export default function ContentDetails() {
 
           {/* Quick Platform Tags card */}
           {recommendation && (
-            <div className="p-5 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-3 text-left">
+            <div className="p-5 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-3 text-left">
               <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
                 Distribution Platforms
               </h4>

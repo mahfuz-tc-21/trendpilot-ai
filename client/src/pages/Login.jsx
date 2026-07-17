@@ -67,7 +67,7 @@ export default function Login() {
             type="email"
             placeholder="name@company.com"
             disabled={isLoading}
-            className={`w-full h-10 px-3 rounded-xl bg-zinc-900/80 border text-sm text-zinc-100 placeholder-zinc-700 focus:outline-none focus:border-indigo-500 transition-colors ${errors.email ? "border-rose-500" : "border-zinc-800"
+            className={`w-full h-10 px-3 rounded-xl bg-zinc-900/80 border text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-indigo-500 transition-colors ${errors.email ? "border-rose-500" : "border-zinc-800"
               }`}
             {...register("email")}
           />
@@ -90,7 +90,7 @@ export default function Login() {
             type="password"
             placeholder="••••••••"
             disabled={isLoading}
-            className={`w-full h-10 px-3 rounded-xl bg-zinc-900/80 border text-sm text-zinc-100 placeholder-zinc-700 focus:outline-none focus:border-indigo-500 transition-colors ${errors.password ? "border-rose-500" : "border-zinc-800"
+            className={`w-full h-10 px-3 rounded-xl bg-zinc-900/80 border text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-indigo-500 transition-colors ${errors.password ? "border-rose-500" : "border-zinc-800"
               }`}
             {...register("password")}
           />

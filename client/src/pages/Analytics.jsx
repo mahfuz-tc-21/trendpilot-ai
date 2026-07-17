@@ -120,13 +120,13 @@ export default function Analytics() {
 
   if (isError || !report) {
     return (
-      <div className="p-12 text-center border border-zinc-850 bg-zinc-900/10 rounded-3xl space-y-4 max-w-lg mx-auto">
+      <div className="p-12 text-center border border-zinc-800 bg-zinc-900/10 rounded-3xl space-y-4 max-w-lg mx-auto">
         <AlertTriangle className="h-10 w-10 text-rose-500 mx-auto" />
         <h3 className="text-sm font-bold text-zinc-200">Failed to Compile Analytics</h3>
         <p className="text-xs text-zinc-500 leading-relaxed text-center">
           Add active channels and ingest crawled records to run SaaS historical timelines.
         </p>
-        <button onClick={() => refetch()} className="px-4 py-2 bg-zinc-900 border border-zinc-800 text-xs font-bold rounded-xl text-zinc-350 hover:border-zinc-700">
+        <button onClick={() => refetch()} className="px-4 py-2 bg-zinc-900 border border-zinc-800 text-xs font-bold rounded-xl text-zinc-300 hover:border-zinc-700">
           Retry Query
         </button>
       </div>
@@ -143,7 +143,7 @@ export default function Analytics() {
           <p className="text-zinc-400 mt-2 text-sm">Analyze processing velocity, opportunities, and platform efficiency.</p>
         </div>
 
-        <div className="p-16 text-center border border-zinc-850 bg-zinc-900/10 rounded-3xl space-y-4 max-w-xl mx-auto">
+        <div className="p-16 text-center border border-zinc-800 bg-zinc-900/10 rounded-3xl space-y-4 max-w-xl mx-auto">
           <BarChart3 className="h-12 w-12 text-zinc-700 mx-auto animate-pulse" />
           <h3 className="text-base font-bold text-zinc-300">No Analytics Compiled</h3>
           <p className="text-xs text-zinc-500 leading-relaxed max-w-sm mx-auto">
@@ -186,7 +186,7 @@ export default function Analytics() {
       )}
 
       {/* 11. Interactive Filters */}
-      <div className="p-5 border border-zinc-850 bg-zinc-900/10 rounded-3xl space-y-4">
+      <div className="p-5 border border-zinc-800 bg-zinc-900/10 rounded-3xl space-y-4">
         <div className="flex items-center gap-2 text-xs font-bold text-zinc-300 uppercase tracking-wider pb-3 border-b border-zinc-900/30">
           <Filter className="h-4 w-4 text-indigo-400" />
           Filter Intelligence Metrics
@@ -198,7 +198,7 @@ export default function Analytics() {
             <select
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value)}
-              className="w-full h-9 rounded-xl border border-zinc-850 bg-zinc-950 px-3 text-xs text-zinc-200 focus:outline-none"
+              className="w-full h-9 rounded-xl border border-zinc-800 bg-zinc-950 px-3 text-xs text-zinc-200 focus:outline-none"
             >
               <option value="7">Last 7 Days</option>
               <option value="30">Last 30 Days</option>
@@ -213,7 +213,7 @@ export default function Analytics() {
             <select
               value={platform}
               onChange={(e) => setPlatform(e.target.value)}
-              className="w-full h-9 rounded-xl border border-zinc-850 bg-zinc-950 px-3 text-xs text-zinc-200 focus:outline-none"
+              className="w-full h-9 rounded-xl border border-zinc-800 bg-zinc-950 px-3 text-xs text-zinc-200 focus:outline-none"
             >
               <option value="">All Platforms</option>
               <option value="facebook">Facebook</option>
@@ -229,7 +229,7 @@ export default function Analytics() {
             <select
               value={source}
               onChange={(e) => setSource(e.target.value)}
-              className="w-full h-9 rounded-xl border border-zinc-850 bg-zinc-950 px-3 text-xs text-zinc-200 focus:outline-none"
+              className="w-full h-9 rounded-xl border border-zinc-800 bg-zinc-950 px-3 text-xs text-zinc-200 focus:outline-none"
             >
               <option value="">All Sources</option>
               {sources.map((s) => (
@@ -244,7 +244,7 @@ export default function Analytics() {
             <select
               value={contentType}
               onChange={(e) => setContentType(e.target.value)}
-              className="w-full h-9 rounded-xl border border-zinc-850 bg-zinc-950 px-3 text-xs text-zinc-200 focus:outline-none"
+              className="w-full h-9 rounded-xl border border-zinc-800 bg-zinc-950 px-3 text-xs text-zinc-200 focus:outline-none"
             >
               <option value="">All Formats</option>
               <option value="Facebook Post">Facebook Post</option>
@@ -262,7 +262,7 @@ export default function Analytics() {
             <select
               value={competitor}
               onChange={(e) => setCompetitor(e.target.value)}
-              className="w-full h-9 rounded-xl border border-zinc-850 bg-zinc-950 px-3 text-xs text-zinc-200 focus:outline-none"
+              className="w-full h-9 rounded-xl border border-zinc-800 bg-zinc-950 px-3 text-xs text-zinc-200 focus:outline-none"
             >
               <option value="">All Competitors</option>
               {competitors.map((c) => (
@@ -276,7 +276,7 @@ export default function Analytics() {
       {/* Row 1: Source Performance & Platform Contribution */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* 1. Source Performance */}
-        <div className="lg:col-span-2 p-6 border border-zinc-850 bg-zinc-900/10 rounded-3xl space-y-4">
+        <div className="lg:col-span-2 p-6 border border-zinc-800 bg-zinc-900/10 rounded-3xl space-y-4">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider pb-2 border-b border-zinc-900/40 flex items-center gap-1.5">
             <Activity className="h-4 w-4 text-indigo-400" />
             Source Performance Report
@@ -304,9 +304,9 @@ export default function Analytics() {
                     <td className="py-3 text-center font-bold text-zinc-400">{s.totalItems}</td>
                     <td className="py-3 text-center font-extrabold text-emerald-450">{s.successRate}</td>
                     <td className="py-3 text-center font-bold text-indigo-455">{s.avgEngagement}</td>
-                    <td className="py-3 text-center"><span className="bg-zinc-950/60 border border-zinc-850 px-2 py-0.5 rounded text-[10px] font-semibold text-zinc-300">{s.topTopic}</span></td>
+                    <td className="py-3 text-center"><span className="bg-zinc-950/60 border border-zinc-800 px-2 py-0.5 rounded text-[10px] font-semibold text-zinc-300">{s.topTopic}</span></td>
                     <td className="py-3 text-center font-bold text-rose-500">{s.failedCrawls}</td>
-                    <td className="py-3 text-right text-zinc-550">{s.lastCrawl ? new Date(s.lastCrawl).toLocaleDateString() : "Never"}</td>
+                    <td className="py-3 text-right text-zinc-500">{s.lastCrawl ? new Date(s.lastCrawl).toLocaleDateString() : "Never"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -315,7 +315,7 @@ export default function Analytics() {
         </div>
 
         {/* 2. Platform Contribution */}
-        <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-3xl space-y-4 flex flex-col justify-between">
+        <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-3xl space-y-4 flex flex-col justify-between">
           <div>
             <h2 className="text-sm font-bold text-white uppercase tracking-wider pb-2 border-b border-zinc-900/40 flex items-center gap-1.5">
               <Activity className="h-4 w-4 text-emerald-400" />
@@ -365,7 +365,7 @@ export default function Analytics() {
       {/* Row 2: Crawl Timeline & Topic Velocity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* 3. Crawl Activity Timeline */}
-        <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-3xl space-y-4">
+        <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-3xl space-y-4">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
             <Calendar className="h-4 w-4 text-indigo-400" />
             Crawl Activity Timeline (Last 30 Days)
@@ -386,7 +386,7 @@ export default function Analytics() {
         </div>
 
         {/* 4. Trending Topic Growth */}
-        <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-3xl space-y-4">
+        <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-3xl space-y-4">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
             <TrendingUp className="h-4 w-4 text-emerald-450" />
             Trending Topic Growth
@@ -409,17 +409,17 @@ export default function Analytics() {
       {/* Row 3: Keywords, High Opp, and Content Production */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* 5. Top Keywords */}
-        <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-3xl space-y-4">
+        <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-3xl space-y-4">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider pb-2 border-b border-zinc-900/40 flex items-center gap-1.5">
             <Sparkles className="h-4 w-4 text-indigo-400" />
             Keyword Cluster Performance
           </h2>
           <div className="space-y-3">
             {report.keywords?.slice(0, 5).map((kw) => (
-              <div key={kw.keyword} className="p-3.5 border border-zinc-850 bg-zinc-950/40 rounded-2xl flex items-center justify-between text-xs">
+              <div key={kw.keyword} className="p-3.5 border border-zinc-800 bg-zinc-950/40 rounded-2xl flex items-center justify-between text-xs">
                 <div>
                   <strong className="text-zinc-200">#{kw.keyword}</strong>
-                  <span className="block text-[8px] text-zinc-550 uppercase tracking-wider mt-0.5">{kw.platforms}</span>
+                  <span className="block text-[8px] text-zinc-500 uppercase tracking-wider mt-0.5">{kw.platforms}</span>
                 </div>
                 <div className="text-right">
                   <span className="font-extrabold text-indigo-400 block">{kw.frequency} mentions</span>
@@ -431,14 +431,14 @@ export default function Analytics() {
         </div>
 
         {/* 6. High Opportunity Topics */}
-        <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-3xl space-y-4">
+        <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-3xl space-y-4">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider pb-2 border-b border-zinc-900/40 flex items-center gap-1.5">
             <Target className="h-4 w-4 text-amber-500" />
             High Opportunity Topics
           </h2>
           <div className="space-y-3">
             {report.highOpportunity?.slice(0, 3).map((item) => (
-              <div key={item.topic} className="p-3.5 rounded-2xl bg-zinc-950/40 border border-zinc-850 text-xs space-y-2 text-left">
+              <div key={item.topic} className="p-3.5 rounded-2xl bg-zinc-950/40 border border-zinc-800 text-xs space-y-2 text-left">
                 <div className="flex justify-between items-center text-zinc-450">
                   <span className="font-bold text-zinc-200">{item.topic}</span>
                   <span className="font-black text-indigo-400">Score {item.opportunityScore}</span>
@@ -455,32 +455,32 @@ export default function Analytics() {
         </div>
 
         {/* 7. Content Production Analytics */}
-        <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-3xl space-y-4">
+        <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-3xl space-y-4">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider pb-2 border-b border-zinc-900/40 flex items-center gap-1.5">
             <Cpu className="h-4 w-4 text-emerald-450" />
             Content Production Analytics
           </h2>
           <div className="grid grid-cols-2 gap-3 text-[10px] text-zinc-400 text-left">
-            <div className="bg-zinc-950/40 p-2.5 border border-zinc-850 rounded-2xl">
+            <div className="bg-zinc-950/40 p-2.5 border border-zinc-800 rounded-2xl">
               <span>Facebook Posts:</span> <strong className="text-zinc-200 font-bold block text-xs mt-0.5">{report.productionAnalytics?.facebook}</strong>
             </div>
-            <div className="bg-zinc-950/40 p-2.5 border border-zinc-850 rounded-2xl">
+            <div className="bg-zinc-950/40 p-2.5 border border-zinc-800 rounded-2xl">
               <span>LinkedIn Posts:</span> <strong className="text-zinc-200 font-bold block text-xs mt-0.5">{report.productionAnalytics?.linkedin}</strong>
             </div>
-            <div className="bg-zinc-950/40 p-2.5 border border-zinc-850 rounded-2xl">
+            <div className="bg-zinc-950/40 p-2.5 border border-zinc-800 rounded-2xl">
               <span>Blogs:</span> <strong className="text-zinc-200 font-bold block text-xs mt-0.5">{report.productionAnalytics?.blogs}</strong>
             </div>
-            <div className="bg-zinc-950/40 p-2.5 border border-zinc-850 rounded-2xl">
+            <div className="bg-zinc-950/40 p-2.5 border border-zinc-800 rounded-2xl">
               <span>YouTube Scripts:</span> <strong className="text-zinc-200 font-bold block text-xs mt-0.5">{report.productionAnalytics?.youtube}</strong>
             </div>
-            <div className="bg-zinc-950/40 p-2.5 border border-zinc-850 rounded-2xl">
+            <div className="bg-zinc-950/40 p-2.5 border border-zinc-800 rounded-2xl">
               <span>Carousels:</span> <strong className="text-zinc-200 font-bold block text-xs mt-0.5">{report.productionAnalytics?.carousel}</strong>
             </div>
-            <div className="bg-zinc-950/40 p-2.5 border border-zinc-850 rounded-2xl">
+            <div className="bg-zinc-950/40 p-2.5 border border-zinc-800 rounded-2xl">
               <span>Twitter Threads:</span> <strong className="text-zinc-200 font-bold block text-xs mt-0.5">{report.productionAnalytics?.twitter}</strong>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-2 border-t border-zinc-900/80 pt-3 text-[8px] text-zinc-550 text-center uppercase tracking-wider font-extrabold">
+          <div className="grid grid-cols-3 gap-2 border-t border-zinc-900/80 pt-3 text-[8px] text-zinc-500 text-center uppercase tracking-wider font-extrabold">
             <div>Today: <span className="text-zinc-300 font-black block text-[10px] mt-0.5">{report.productionAnalytics?.today}</span></div>
             <div>This Week: <span className="text-zinc-300 font-black block text-[10px] mt-0.5">{report.productionAnalytics?.week}</span></div>
             <div>This Month: <span className="text-zinc-300 font-black block text-[10px] mt-0.5">{report.productionAnalytics?.month}</span></div>
@@ -491,7 +491,7 @@ export default function Analytics() {
       {/* Row 4: Top Performing Content & Creator Productivity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* 8. Top Performing Content */}
-        <div className="lg:col-span-2 p-6 border border-zinc-850 bg-zinc-900/10 rounded-3xl space-y-4">
+        <div className="lg:col-span-2 p-6 border border-zinc-800 bg-zinc-900/10 rounded-3xl space-y-4">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider pb-2 border-b border-zinc-900/40 flex items-center gap-1.5">
             <Award className="h-4 w-4 text-orange-500 animate-pulse" />
             Top Performing Content Items
@@ -512,7 +512,7 @@ export default function Analytics() {
                   <tr key={item.id} className="text-zinc-300">
                     <td className="py-3 font-semibold max-w-xs truncate pr-4 text-zinc-200">
                       {item.title}
-                      <span className="block text-[8px] text-zinc-550 uppercase tracking-widest mt-0.5">{item.platform}</span>
+                      <span className="block text-[8px] text-zinc-500 uppercase tracking-widest mt-0.5">{item.platform}</span>
                     </td>
                     <td className="py-3 font-medium text-zinc-400">{item.source}</td>
                     <td className="py-3 text-center font-black text-emerald-450">{item.engagement}</td>
@@ -529,7 +529,7 @@ export default function Analytics() {
                               }
                             });
                           }}
-                          className="px-2 py-1 bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-[10px] font-bold text-zinc-300 rounded-lg cursor-pointer transition-colors"
+                          className="px-2 py-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-[10px] font-bold text-zinc-300 rounded-lg cursor-pointer transition-colors"
                         >
                           Similar
                         </button>
@@ -557,7 +557,7 @@ export default function Analytics() {
         </div>
 
         {/* 9. Creator Productivity */}
-        <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-3xl space-y-4 flex flex-col justify-between">
+        <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-3xl space-y-4 flex flex-col justify-between">
           <div className="space-y-4">
             <h2 className="text-sm font-bold text-white uppercase tracking-wider pb-2 border-b border-zinc-900/40 flex items-center gap-1.5">
               <User className="h-4 w-4 text-indigo-400" />
@@ -590,7 +590,7 @@ export default function Analytics() {
               </div>
             </div>
           </div>
-          <div className="text-[10px] text-zinc-550 pt-4 border-t border-zinc-900/80 text-center font-medium">
+          <div className="text-[10px] text-zinc-500 pt-4 border-t border-zinc-900/80 text-center font-medium">
             Creator Account Last Active: <strong className="text-zinc-400">{report.userActivity?.lastActive ? new Date(report.userActivity.lastActive).toLocaleString() : "Just now"}</strong>
           </div>
         </div>

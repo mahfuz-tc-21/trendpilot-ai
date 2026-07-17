@@ -183,7 +183,7 @@ export default function Sources() {
               setSearchTerm(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full h-10 pl-9 pr-4 rounded-xl bg-zinc-950 border border-zinc-850 text-sm text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-indigo-500/80 transition-colors"
+            className="w-full h-10 pl-9 pr-4 rounded-xl bg-zinc-950 border border-zinc-800 text-sm text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-indigo-500/80 transition-colors"
           />
         </div>
 
@@ -198,7 +198,7 @@ export default function Sources() {
                 setTypeFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="h-10 px-3 rounded-xl bg-zinc-950 border border-zinc-850 text-xs text-zinc-400 focus:outline-none focus:border-indigo-500 transition-colors"
+              className="h-10 px-3 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-400 focus:outline-none focus:border-indigo-500 transition-colors"
             >
               <option value="all">All Types</option>
               <option value="website">Websites</option>
@@ -214,7 +214,7 @@ export default function Sources() {
               setStatusFilter(e.target.value);
               setCurrentPage(1);
             }}
-            className="h-10 px-3 rounded-xl bg-zinc-950 border border-zinc-850 text-xs text-zinc-400 focus:outline-none focus:border-indigo-500 transition-colors"
+            className="h-10 px-3 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-400 focus:outline-none focus:border-indigo-500 transition-colors"
           >
             <option value="all">All Statuses</option>
             <option value="active">Active</option>
@@ -247,7 +247,7 @@ export default function Sources() {
           </div>
           <button
             onClick={() => refetch()}
-            className="px-4 py-2 bg-zinc-850 hover:bg-zinc-800 text-zinc-300 text-xs font-semibold rounded-xl border border-zinc-700 transition-colors cursor-pointer"
+            className="px-4 py-2 bg-zinc-800 hover:bg-zinc-800 text-zinc-300 text-xs font-semibold rounded-xl border border-zinc-700 transition-colors cursor-pointer"
           >
             Retry
           </button>
@@ -404,7 +404,7 @@ export default function Sources() {
                 <button
                   onClick={() => setPageSafe(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="p-1.5 rounded-lg border border-zinc-850 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-850 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                  className="p-1.5 rounded-lg border border-zinc-800 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
@@ -414,7 +414,7 @@ export default function Sources() {
                 <button
                   onClick={() => setPageSafe(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="p-1.5 rounded-lg border border-zinc-850 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-850 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                  className="p-1.5 rounded-lg border border-zinc-800 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>

@@ -254,7 +254,7 @@ export default function Trash() {
         {/* Left: Trash Content Grid */}
         <div className="lg:col-span-2 space-y-6">
           {/* Filter Bar */}
-          <div className="p-4 border border-zinc-850 bg-zinc-900/10 rounded-2xl flex flex-col sm:flex-row gap-4 items-center justify-between">
+          <div className="p-4 border border-zinc-800 bg-zinc-900/10 rounded-2xl flex flex-col sm:flex-row gap-4 items-center justify-between">
             {/* Search */}
             <div className="relative w-full sm:w-60">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3">
@@ -265,7 +265,7 @@ export default function Trash() {
                 placeholder="Search trashed posts..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full h-9 pl-9 pr-4 rounded-xl bg-zinc-950 border border-zinc-850 text-xs text-zinc-300 placeholder-zinc-500 focus:outline-none transition-colors"
+                className="w-full h-9 pl-9 pr-4 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-300 placeholder-zinc-500 focus:outline-none transition-colors"
               />
             </div>
 
@@ -274,7 +274,7 @@ export default function Trash() {
               {trashItems.length > 0 && (
                 <button
                   onClick={handleToggleSelectAll}
-                  className="h-9 px-3 bg-zinc-950 border border-zinc-850 hover:bg-zinc-900 rounded-xl text-xs text-zinc-300 flex items-center gap-1.5 focus:outline-none cursor-pointer font-semibold"
+                  className="h-9 px-3 bg-zinc-950 border border-zinc-800 hover:bg-zinc-900 rounded-xl text-xs text-zinc-300 flex items-center gap-1.5 focus:outline-none cursor-pointer font-semibold"
                 >
                   Select All
                 </button>
@@ -284,7 +284,7 @@ export default function Trash() {
               <select
                 value={platform}
                 onChange={(e) => setPlatform(e.target.value)}
-                className="h-9 px-2 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer"
+                className="h-9 px-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer"
               >
                 <option value="">All Platforms</option>
                 <option value="facebook">Facebook</option>
@@ -324,7 +324,7 @@ export default function Trash() {
               <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
             </div>
           ) : trashItems.length === 0 ? (
-            <div className="py-16 text-center border border-dashed border-zinc-850 rounded-2xl text-zinc-550 text-xs">
+            <div className="py-16 text-center border border-dashed border-zinc-800 rounded-2xl text-zinc-500 text-xs">
               No soft-deleted crawls in Trash Bin.
             </div>
           ) : (
@@ -339,7 +339,7 @@ export default function Trash() {
                   <div
                     key={key}
                     className={`p-4 border rounded-2xl bg-zinc-950/40 hover:bg-zinc-900/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-left transition-all ${
-                      isSelected ? "border-indigo-500 bg-indigo-950/5" : "border-zinc-850"
+                      isSelected ? "border-indigo-500 bg-indigo-950/5" : "border-zinc-800"
                     }`}
                   >
                     <div className="space-y-1 truncate w-full sm:max-w-[70%]">
@@ -357,7 +357,7 @@ export default function Trash() {
                         <Icon className="h-4 w-4 text-zinc-500 flex-shrink-0" />
                         <h4 className="text-xs font-bold text-zinc-200 truncate leading-snug">{item.title}</h4>
                       </div>
-                      <div className="flex flex-wrap items-center gap-2 text-[9px] text-zinc-550 font-bold uppercase pl-6">
+                      <div className="flex flex-wrap items-center gap-2 text-[9px] text-zinc-500 font-bold uppercase pl-6">
                         <span className="text-zinc-400">{item.source}</span>
                         <span>•</span>
                         <span>Deleted {countdown.ago}</span>
@@ -369,7 +369,7 @@ export default function Trash() {
                     <div className="flex gap-2 w-full sm:w-auto justify-end">
                       <button
                         onClick={() => handleRestore(item.id, item.type)}
-                        className="px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-[10px] font-bold rounded-lg text-zinc-350 cursor-pointer transition-colors flex items-center gap-1"
+                        className="px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-[10px] font-bold rounded-lg text-zinc-300 cursor-pointer transition-colors flex items-center gap-1"
                         title="Restore Item"
                       >
                         <RotateCcw className="h-3 w-3" />
@@ -392,7 +392,7 @@ export default function Trash() {
         </div>
 
         {/* Right: AI assisted Cleanup Suggestions */}
-        <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-3xl space-y-4">
+        <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-3xl space-y-4">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider pb-2 border-b border-zinc-900/40 flex items-center gap-1.5">
             <Sparkles className="h-4 w-4 text-indigo-400" />
             AI-Assisted Cleanup
@@ -406,13 +406,13 @@ export default function Trash() {
               <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
             </div>
           ) : suggestions.length === 0 ? (
-            <div className="py-8 text-center text-xs text-zinc-550 italic">
+            <div className="py-8 text-center text-xs text-zinc-500 italic">
               Database clean! No duplicates or thin content found.
             </div>
           ) : (
             <div className="space-y-3">
               {suggestions.map((item) => (
-                <div key={item.id} className="p-3 border border-zinc-850 bg-zinc-950/40 rounded-2xl text-left space-y-2">
+                <div key={item.id} className="p-3 border border-zinc-800 bg-zinc-950/40 rounded-2xl text-left space-y-2">
                   <div className="space-y-0.5">
                     <h5 className="text-[11px] font-extrabold text-zinc-200 line-clamp-1">{item.title}</h5>
                     <span className="text-[9px] font-bold text-indigo-400/90 uppercase tracking-widest">{item.source} ({item.platform})</span>

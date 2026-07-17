@@ -149,19 +149,19 @@ export default function YTStudio() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* File Upload Zone / Database Selector */}
-          <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-4 flex flex-col justify-between">
+          <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-4 flex flex-col justify-between">
             {/* Database Selector Dropdown */}
             <div className="space-y-1">
               <label className="text-[10px] text-zinc-500 uppercase font-semibold">
                 Load Transcript from Ingested Video
               </label>
               {videosLoading ? (
-                <div className="h-10 bg-zinc-950/40 border border-zinc-850 animate-pulse rounded-xl" />
+                <div className="h-10 bg-zinc-950/40 border border-zinc-800 animate-pulse rounded-xl" />
               ) : (
                 <select
                   value={selectedVideoId}
                   onChange={(e) => handleSelectVideo(e.target.value)}
-                  className="w-full h-10 px-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer"
+                  className="w-full h-10 px-3 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer"
                 >
                   <option value="">-- Load from Content Library (Select crawled video) --</option>
                   {videos.map((vid) => (
@@ -182,7 +182,7 @@ export default function YTStudio() {
                 className="hidden" 
                 onChange={(e) => handleSubtitleFile(e.target.files[0])} 
               />
-              <Upload className="h-8 w-8 text-zinc-650 mx-auto mb-2" />
+              <Upload className="h-8 w-8 text-zinc-600 mx-auto mb-2" />
               <span className="text-xs font-semibold text-zinc-300 block">Click or drag subtitle file here</span>
               <span className="text-[10px] text-zinc-500 block mt-1">Formats: .sbv, .srt, .txt</span>
             </div>
@@ -199,7 +199,7 @@ export default function YTStudio() {
                   setSystemOutput(`Loaded audio payload: ${e.target.files[0]?.name}`);
                 }} 
               />
-              <Music className="h-8 w-8 text-zinc-650 mx-auto mb-2" />
+              <Music className="h-8 w-8 text-zinc-600 mx-auto mb-2" />
               {audioFile ? (
                 <span className="text-xs font-semibold text-indigo-400 block truncate">{audioFile.name}</span>
               ) : (
@@ -227,9 +227,9 @@ export default function YTStudio() {
           </div>
 
           {/* Subtitle content textarea (editable) */}
-          <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-4 flex flex-col justify-between h-[420px]">
+          <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-4 flex flex-col justify-between h-[420px]">
             <span className="text-xs font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
-              <FileText className="h-4.5 w-4.5 text-zinc-550" />
+              <FileText className="h-4.5 w-4.5 text-zinc-500" />
               Subtitle Content (Editable)
             </span>
             <textarea
@@ -254,7 +254,7 @@ export default function YTStudio() {
         {/* 6 modular generator cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Card 1: YouTube Titles */}
-          <div className="p-5 border border-zinc-850 bg-zinc-900/10 rounded-2xl flex flex-col justify-between gap-4">
+          <div className="p-5 border border-zinc-800 bg-zinc-900/10 rounded-2xl flex flex-col justify-between gap-4">
             <div className="space-y-1">
               <span className="text-sm font-bold text-white flex items-center gap-2">
                 <span className="text-red-500">▶</span> YouTube Titles
@@ -266,7 +266,7 @@ export default function YTStudio() {
               value={titleConstraints}
               onChange={(e) => setTitleConstraints(e.target.value)}
               rows={2}
-              className="w-full p-2 bg-zinc-950 border border-zinc-900 rounded-lg text-xs text-zinc-300 placeholder-zinc-700 focus:outline-none focus:border-zinc-855 resize-none"
+              className="w-full p-2 bg-zinc-950 border border-zinc-900 rounded-lg text-xs text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-zinc-855 resize-none"
             />
             <button
               onClick={() => handleGenerate("YT_Titles", titleConstraints)}
@@ -278,7 +278,7 @@ export default function YTStudio() {
           </div>
 
           {/* Card 2: Thumbnail Text */}
-          <div className="p-5 border border-zinc-850 bg-zinc-900/10 rounded-2xl flex flex-col justify-between gap-4">
+          <div className="p-5 border border-zinc-800 bg-zinc-900/10 rounded-2xl flex flex-col justify-between gap-4">
             <div className="space-y-1">
               <span className="text-sm font-bold text-white flex items-center gap-2">
                 <span className="text-red-500">▶</span> Thumbnail Text
@@ -290,7 +290,7 @@ export default function YTStudio() {
               value={thumbnailConstraints}
               onChange={(e) => setThumbnailConstraints(e.target.value)}
               rows={2}
-              className="w-full p-2 bg-zinc-950 border border-zinc-900 rounded-lg text-xs text-zinc-300 placeholder-zinc-700 focus:outline-none focus:border-zinc-855 resize-none"
+              className="w-full p-2 bg-zinc-950 border border-zinc-900 rounded-lg text-xs text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-zinc-855 resize-none"
             />
             <button
               onClick={() => handleGenerate("YT_Thumbnail", thumbnailConstraints)}
@@ -302,7 +302,7 @@ export default function YTStudio() {
           </div>
 
           {/* Card 3: Video Description */}
-          <div className="p-5 border border-zinc-850 bg-zinc-900/10 rounded-2xl flex flex-col justify-between gap-4">
+          <div className="p-5 border border-zinc-800 bg-zinc-900/10 rounded-2xl flex flex-col justify-between gap-4">
             <div className="space-y-1">
               <span className="text-sm font-bold text-white flex items-center gap-2">
                 <span className="text-red-500">▶</span> Video Description
@@ -314,7 +314,7 @@ export default function YTStudio() {
               value={descConstraints}
               onChange={(e) => setDescConstraints(e.target.value)}
               rows={2}
-              className="w-full p-2 bg-zinc-950 border border-zinc-900 rounded-lg text-xs text-zinc-300 placeholder-zinc-700 focus:outline-none focus:border-zinc-855 resize-none"
+              className="w-full p-2 bg-zinc-950 border border-zinc-900 rounded-lg text-xs text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-zinc-855 resize-none"
             />
             <button
               onClick={() => handleGenerate("YT_Desc", descConstraints)}
@@ -326,7 +326,7 @@ export default function YTStudio() {
           </div>
 
           {/* Card 4: Video Tags */}
-          <div className="p-5 border border-zinc-850 bg-zinc-900/10 rounded-2xl flex flex-col justify-between gap-4">
+          <div className="p-5 border border-zinc-800 bg-zinc-900/10 rounded-2xl flex flex-col justify-between gap-4">
             <div className="space-y-1">
               <span className="text-sm font-bold text-white flex items-center gap-2">
                 <span className="text-red-500">▶</span> Video Tags
@@ -338,7 +338,7 @@ export default function YTStudio() {
               value={tagsConstraints}
               onChange={(e) => setTagsConstraints(e.target.value)}
               rows={2}
-              className="w-full p-2 bg-zinc-950 border border-zinc-900 rounded-lg text-xs text-zinc-300 placeholder-zinc-700 focus:outline-none focus:border-zinc-855 resize-none"
+              className="w-full p-2 bg-zinc-950 border border-zinc-900 rounded-lg text-xs text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-zinc-855 resize-none"
             />
             <button
               onClick={() => handleGenerate("YT_Tags", tagsConstraints)}
@@ -350,7 +350,7 @@ export default function YTStudio() {
           </div>
 
           {/* Card 5: Facebook Captions */}
-          <div className="p-5 border border-zinc-850 bg-zinc-900/10 rounded-2xl flex flex-col justify-between gap-4">
+          <div className="p-5 border border-zinc-800 bg-zinc-900/10 rounded-2xl flex flex-col justify-between gap-4">
             <div className="space-y-1">
               <span className="text-sm font-bold text-white flex items-center gap-2">
                 <span className="text-red-500">▶</span> Facebook Captions
@@ -362,7 +362,7 @@ export default function YTStudio() {
               value={fbConstraints}
               onChange={(e) => setFbConstraints(e.target.value)}
               rows={2}
-              className="w-full p-2 bg-zinc-950 border border-zinc-900 rounded-lg text-xs text-zinc-300 placeholder-zinc-700 focus:outline-none focus:border-zinc-855 resize-none"
+              className="w-full p-2 bg-zinc-950 border border-zinc-900 rounded-lg text-xs text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-zinc-855 resize-none"
             />
             <button
               onClick={() => handleGenerate("Facebook", fbConstraints)}
@@ -374,7 +374,7 @@ export default function YTStudio() {
           </div>
 
           {/* Card 6: Important Timestamps */}
-          <div className="p-5 border border-zinc-850 bg-zinc-900/10 rounded-2xl flex flex-col justify-between gap-4">
+          <div className="p-5 border border-zinc-800 bg-zinc-900/10 rounded-2xl flex flex-col justify-between gap-4">
             <div className="space-y-1">
               <span className="text-sm font-bold text-white flex items-center gap-2">
                 <span className="text-red-500">▶</span> Important Timestamps
@@ -386,7 +386,7 @@ export default function YTStudio() {
               value={timestampConstraints}
               onChange={(e) => setTimestampConstraints(e.target.value)}
               rows={2}
-              className="w-full p-2 bg-zinc-950 border border-zinc-900 rounded-lg text-xs text-zinc-300 placeholder-zinc-700 focus:outline-none focus:border-zinc-855 resize-none"
+              className="w-full p-2 bg-zinc-950 border border-zinc-900 rounded-lg text-xs text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-zinc-855 resize-none"
             />
             <button
               onClick={() => handleGenerate("YT_Timestamps", timestampConstraints)}
@@ -400,7 +400,7 @@ export default function YTStudio() {
       </div>
 
       {/* Row 3: SYSTEM OUTPUT (EDITABLE) */}
-      <div className="p-6 border border-zinc-850 bg-zinc-900/15 backdrop-blur-sm rounded-2xl space-y-4">
+      <div className="p-6 border border-zinc-800 bg-zinc-900/15 backdrop-blur-sm rounded-2xl space-y-4">
         <div className="flex justify-between items-center border-b border-zinc-800/80 pb-3">
           <span className="text-xs font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-2">
             {generateMutation.isPending ? (

@@ -85,7 +85,7 @@ export default function SettingsPage() {
         {/* Left Side: General Profile Info */}
         <div className="md:col-span-2 space-y-6">
           {/* User profile card */}
-          <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-4">
+          <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-4">
             <h2 className="text-sm font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-2 pb-3 border-b border-zinc-800">
               <User className="h-4.5 w-4.5 text-indigo-400" />
               Creator Profile
@@ -112,7 +112,7 @@ export default function SettingsPage() {
           </div>
 
           {/* Gemini API Key Configuration */}
-          <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-5">
+          <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-5">
             <h2 className="text-sm font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-2 pb-3 border-b border-zinc-800">
               <Shield className="h-4.5 w-4.5 text-indigo-400" />
               Google Gemini Configuration
@@ -156,7 +156,7 @@ export default function SettingsPage() {
             </form>
           </div>
           {/* Language Preference Configuration */}
-          <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-5 text-left">
+          <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-5 text-left">
             <h2 className="text-sm font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-2 pb-3 border-b border-zinc-800">
               <Globe className="h-4.5 w-4.5 text-indigo-400" />
               Content Language Preference
@@ -173,7 +173,7 @@ export default function SettingsPage() {
                 <select
                   value={languageInput}
                   onChange={(e) => setLanguageInput(e.target.value)}
-                  className="w-full h-10 px-3 rounded-xl bg-zinc-950 border border-zinc-850 text-sm text-zinc-150 focus:outline-none focus:border-indigo-500 transition-colors"
+                  className="w-full h-10 px-3 rounded-xl bg-zinc-950 border border-zinc-800 text-sm text-zinc-150 focus:outline-none focus:border-indigo-500 transition-colors"
                 >
                   <option value="bn">Bangla (বাংলা)</option>
                   <option value="en">English (English)</option>
@@ -193,7 +193,7 @@ export default function SettingsPage() {
           </div>
 
           {/* Scheduler Settings */}
-          <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-5">
+          <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-5">
             <h2 className="text-sm font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-2 pb-3 border-b border-zinc-800">
               <Clock className="h-4.5 w-4.5 text-indigo-400" />
               Background Ingestion Scheduler
@@ -222,7 +222,7 @@ export default function SettingsPage() {
           </div>
 
           {/* Preferences */}
-          <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-5">
+          <div className="p-6 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-5">
             <h2 className="text-sm font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-2 pb-3 border-b border-zinc-800">
               <Bell className="h-4.5 w-4.5 text-indigo-400" />
               Notification Settings
@@ -253,7 +253,7 @@ export default function SettingsPage() {
 
         {/* Right Side: Security & System Settings */}
         <div className="space-y-6">
-          <div className="p-5 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-4 text-left">
+          <div className="p-5 border border-zinc-800 bg-zinc-900/10 rounded-2xl space-y-4 text-left">
             <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2 border-b border-zinc-800 pb-2">
               <Shield className="h-4 w-4 text-indigo-400" />
               Aesthetics & Theme

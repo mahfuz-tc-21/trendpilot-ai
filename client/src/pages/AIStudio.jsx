@@ -1,8 +1,8 @@
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useState, useEffect, useRef } from "react";
-import { 
-  PenTool, Sparkles, Send, Copy, Download, Check, 
+import {
+  PenTool, Sparkles, Send, Copy, Download, Check,
   FileText, ArrowLeft, RefreshCw, Cpu, Activity,
   Globe, Video, Link as LinkIcon, AlertCircle
 } from "lucide-react";
@@ -226,7 +226,7 @@ ${data.whyItBeatsThem}
       navigate("/settings");
       return;
     }
-    
+
     // Validation
     if (inputType === "custom_topic" && !topicInput.trim()) {
       alert("Please enter a Custom Topic title first.");
@@ -300,11 +300,10 @@ ${data.whyItBeatsThem}
                 setInputType(t.id);
                 setUseCompetitorSource(false);
               }}
-              className={`flex flex-col items-center justify-center p-3 border rounded-2xl cursor-pointer text-center gap-1.5 transition-all duration-200 ${
-                inputType === t.id
-                  ? "border-indigo-500 bg-indigo-950/20 text-indigo-400 shadow-md shadow-indigo-500/5 scale-[1.02]"
-                  : "border-zinc-850 bg-zinc-900/10 text-zinc-400 hover:bg-zinc-850/30 hover:text-zinc-200"
-              }`}
+              className={`flex flex-col items-center justify-center p-3 border rounded-2xl cursor-pointer text-center gap-1.5 transition-all duration-200 ${inputType === t.id
+                ? "border-indigo-500 bg-indigo-950/20 text-indigo-400 shadow-md shadow-indigo-500/5 scale-[1.02]"
+                : "border-zinc-850 bg-zinc-900/10 text-zinc-400 hover:bg-zinc-850/30 hover:text-zinc-200"
+                }`}
             >
               <t.icon className="h-4.5 w-4.5" />
               <span className="text-[10px] font-bold truncate w-full">{t.name}</span>
@@ -533,9 +532,9 @@ ${data.whyItBeatsThem}
                     type="url"
                     placeholder={
                       inputType === "website_url" ? "https://openai.com/blog" :
-                      inputType === "facebook_url" ? "https://www.facebook.com/programmingHero" :
-                      inputType === "youtube_url" ? "https://www.youtube.com/watch?v=..." :
-                      "https://medium.com/blog-slug"
+                        inputType === "facebook_url" ? "https://www.facebook.com/programmingHero" :
+                          inputType === "youtube_url" ? "https://www.youtube.com/watch?v=..." :
+                            "https://medium.com/blog-slug"
                     }
                     value={urlInput}
                     onChange={(e) => setUrlInput(e.target.value)}
@@ -708,11 +707,10 @@ ${data.whyItBeatsThem}
                   {chatHistory.map((msg, index) => (
                     <div
                       key={index}
-                      className={`p-3.5 rounded-2xl text-xs max-w-[85%] leading-relaxed ${
-                        msg.role === "user"
-                          ? "bg-indigo-600/15 text-indigo-300 border border-indigo-900/40 ml-auto"
-                          : "bg-zinc-950/85 text-zinc-350 border border-zinc-900 mr-auto text-left"
-                      }`}
+                      className={`p-3.5 rounded-2xl text-xs max-w-[85%] leading-relaxed ${msg.role === "user"
+                        ? "bg-indigo-600 text-white border border-indigo-600 ml-auto"
+                        : "bg-blue-50 text-black border border-blue-200 mr-auto text-left"
+                        }`}
                     >
                       <div className="whitespace-pre-wrap font-light">
                         {msg.text}

@@ -47,7 +47,7 @@ export default function Recommendations() {
             placeholder="Search suggested titles or hooks..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-10 pl-9 pr-4 rounded-xl bg-zinc-950 border border-zinc-850 text-sm text-zinc-300 placeholder-zinc-500 focus:outline-none focus:border-zinc-700 transition-colors"
+            className="w-full h-10 pl-9 pr-4 rounded-xl bg-zinc-950 border border-zinc-800 text-sm text-zinc-300 placeholder-zinc-500 focus:outline-none focus:border-zinc-700 transition-colors"
           />
         </div>
 
@@ -59,7 +59,7 @@ export default function Recommendations() {
             <select
               value={platform}
               onChange={(e) => setPlatform(e.target.value)}
-              className="h-10 px-3 py-1 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer"
+              className="h-10 px-3 py-1 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer"
             >
               <option value="">All Platforms</option>
               <option value="LinkedIn">LinkedIn</option>
@@ -74,7 +74,7 @@ export default function Recommendations() {
           <select
             value={format}
             onChange={(e) => setFormat(e.target.value)}
-            className="h-10 px-3 py-1 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer"
+            className="h-10 px-3 py-1 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer"
           >
             <option value="">All Formats</option>
             <option value="Post">Social Post</option>
@@ -102,7 +102,7 @@ export default function Recommendations() {
             <div
               key={rec._id || rec.id}
               onClick={() => navigate(`/content/${rec.contentId?._id || rec.contentId}`)}
-              className="p-5 border border-zinc-850 bg-zinc-900/10 hover:border-indigo-500/50 hover:bg-zinc-900/20 backdrop-blur-sm rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-5 transition-all duration-200 cursor-pointer text-left"
+              className="p-5 border border-zinc-800 bg-zinc-900/10 hover:border-indigo-500/50 hover:bg-zinc-900/20 backdrop-blur-sm rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-5 transition-all duration-200 cursor-pointer text-left"
             >
               <div className="space-y-2.5 flex-1">
                 <div className="flex flex-wrap gap-2 items-center">

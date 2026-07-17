@@ -122,7 +122,7 @@ export default function ContentLibrary() {
             placeholder="Search crawled content..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-10 pl-9 pr-4 rounded-xl bg-zinc-950 border border-zinc-850 text-sm text-zinc-300 placeholder-zinc-500 focus:outline-none focus:border-zinc-700 transition-colors"
+            className="w-full h-10 pl-9 pr-4 rounded-xl bg-zinc-950 border border-zinc-800 text-sm text-zinc-300 placeholder-zinc-500 focus:outline-none focus:border-zinc-700 transition-colors"
           />
         </div>
 
@@ -131,7 +131,7 @@ export default function ContentLibrary() {
           {contentItems.length > 0 && (
             <button
               onClick={handleToggleSelectAll}
-              className="h-10 px-3 py-1 bg-zinc-950 border border-zinc-850 hover:bg-zinc-900 rounded-xl text-xs text-zinc-300 flex items-center gap-1.5 focus:outline-none cursor-pointer font-semibold"
+              className="h-10 px-3 py-1 bg-zinc-950 border border-zinc-800 hover:bg-zinc-900 rounded-xl text-xs text-zinc-300 flex items-center gap-1.5 focus:outline-none cursor-pointer font-semibold"
             >
               {selectedIds.size === contentItems.length ? (
                 <CheckSquare className="h-4 w-4 text-indigo-400" />
@@ -148,7 +148,7 @@ export default function ContentLibrary() {
             <select
               value={type}
               onChange={(e) => setType(e.target.value)}
-              className="h-10 px-3 py-1 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer"
+              className="h-10 px-3 py-1 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer"
             >
               <option value="">All Formats</option>
               <option value="youtube">YouTube Videos</option>
@@ -160,7 +160,7 @@ export default function ContentLibrary() {
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="h-10 px-3 py-1 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer"
+            className="h-10 px-3 py-1 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer"
           >
             <option value="">All AI Status</option>
             <option value="completed">Completed</option>
@@ -186,7 +186,7 @@ export default function ContentLibrary() {
             </button>
             <button
               onClick={() => setSelectedIds(new Set())}
-              className="px-3 py-1.5 bg-zinc-950 hover:bg-zinc-900 border border-zinc-850 rounded-xl text-zinc-400 cursor-pointer"
+              className="px-3 py-1.5 bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 rounded-xl text-zinc-400 cursor-pointer"
             >
               Clear Selection
             </button>
@@ -213,7 +213,7 @@ export default function ContentLibrary() {
                 key={itemId}
                 onClick={() => navigate(`/content/${itemId}`)}
                 className={`p-5 border bg-zinc-900/10 hover:bg-zinc-900/20 backdrop-blur-sm rounded-2xl flex flex-col justify-between gap-4 transition-all duration-200 cursor-pointer text-left ${
-                  isSelected ? "border-indigo-500 bg-indigo-950/5" : "border-zinc-850 hover:border-indigo-500/30"
+                  isSelected ? "border-indigo-500 bg-indigo-950/5" : "border-zinc-800 hover:border-indigo-500/30"
                 }`}
               >
                 <div className="space-y-2">
