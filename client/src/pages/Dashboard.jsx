@@ -24,6 +24,7 @@ import {
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, PieChart, Pie } from "recharts";
 import dashboardService from "../services/dashboardService.js";
 import { useAuthStore } from "../services/authStore.js";
+import { useToastStore } from "../services/toastStore.js";
 import api from "../services/api.js";
 
 const COLORS = ["#1877f2", "#ff0000", "#10b981", "#6366f1"];
@@ -60,6 +61,7 @@ const TrendingTooltip = ({ active, payload }) => {
 export default function Dashboard() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const showToast = useToastStore((state) => state.showToast);
 
   const {
     data: db,
@@ -86,7 +88,7 @@ export default function Dashboard() {
 
   const handleManualScan = () => {
     if (!user?.geminiApiKey) {
-      alert("⚠️ Gemini API Key is missing! Please configure your Google Gemini API Key in Settings first to run scans.");
+      showToast("Gemini API Key is missing! Please configure your Google Gemini API Key in Settings first to run scans.", "error");
       navigate("/settings");
       return;
     }

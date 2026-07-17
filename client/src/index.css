@@ -224,8 +224,8 @@
 /* Restore white text color for primary buttons and active items */
 .light .bg-indigo-600,
 .light .bg-indigo-600 *,
-.light button[class*="bg-indigo-600"],
-.light button[class*="bg-indigo-600"] * {
+.light .bg-rose-600,
+.light .bg-rose-600 * {
   color: #ffffff !important;
 }
 
@@ -372,4 +372,26 @@
 
 .light .text-zinc-300 {
   color: #27272a !important;
+}
+
+/* High contrast overrides for red/rose elements in light mode to prevent discoloration */
+.light .text-rose-400,
+.light .text-rose-455,
+.light .text-rose-500 {
+  color: #b91c1c !important; /* Readable dark red */
+}
+
+.light .bg-rose-950\/20,
+.light .bg-rose-955\/20,
+.light .bg-rose-600\/10 {
+  background-color: rgba(239, 68, 68, 0.08) !important;
+}
+
+.light .border-rose-500\/20,
+.light .border-rose-500\/15 {
+  border-color: rgba(239, 68, 68, 0.18) !important;
+}
+
+.light .hover\:bg-rose-600\/20:hover {
+  background-color: rgba(239, 68, 68, 0.18) !important;
 }

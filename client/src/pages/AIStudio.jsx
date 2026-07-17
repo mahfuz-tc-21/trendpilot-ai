@@ -10,12 +10,14 @@ import {
   Star, FileDown, Type
 } from "lucide-react";
 import { useAuthStore } from "../services/authStore.js";
+import { useToastStore } from "../services/toastStore.js";
 import api from "../services/api.js";
 import ApiLimitModal from "../components/ApiLimitModal.jsx";
 
 export default function AIStudio() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const showToast = useToastStore((state) => state.showToast);
   const [searchParams] = useSearchParams();
   const paramFormat = searchParams.get("format") || "LinkedIn";
   const paramContentId = searchParams.get("contentId") || "";
@@ -440,22 +442,22 @@ ${data.whyItBeatsThem}
 
   const handleGenerateClick = () => {
     if (!user?.geminiApiKey) {
-      alert("⚠️ Gemini API Key is missing! Please configure your Google Gemini API Key in Settings first.");
+      showToast("Gemini API Key is missing! Please configure your Google Gemini API Key in Settings first.", "error");
       navigate("/settings");
       return;
     }
 
     // Validation
     if (inputType === "custom_topic" && !topicInput.trim()) {
-      alert("Please enter a Custom Topic title first.");
+      showToast("Please enter a Custom Topic title first.", "error");
       return;
     }
     if (inputType === "paste_content" && !pastedText.trim()) {
-      alert("Please paste text content first.");
+      showToast("Please paste text content first.", "error");
       return;
     }
     if (["website_url", "facebook_url", "youtube_url", "blog_url"].includes(inputType) && !urlInput.trim()) {
-      alert("Please enter a valid URL.");
+      showToast("Please enter a valid URL.", "error");
       return;
     }
 
@@ -471,7 +473,7 @@ ${data.whyItBeatsThem}
     e.preventDefault();
     if (!chatPrompt.trim()) return;
     if (!user?.geminiApiKey) {
-      alert("⚠️ Gemini API Key is missing! Please configure your Google Gemini API Key in Settings first.");
+      showToast("Gemini API Key is missing! Please configure your Google Gemini API Key in Settings first.", "error");
       navigate("/settings");
       return;
     }

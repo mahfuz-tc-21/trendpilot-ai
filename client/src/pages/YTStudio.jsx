@@ -6,16 +6,18 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../services/authStore.js";
+import { useToastStore } from "../services/toastStore.js";
 import api from "../services/api.js";
 import ApiLimitModal from "../components/ApiLimitModal.jsx";
 
 export default function YTStudio() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const showToast = useToastStore((state) => state.showToast);
 
   const handleGenerate = (format, constraints) => {
     if (!user?.geminiApiKey) {
-      alert("⚠️ Gemini API Key is missing! Please configure your Google Gemini API Key in Settings first.");
+      showToast("Gemini API Key is missing! Please configure your Google Gemini API Key in Settings first.", "error");
       navigate("/settings");
       return;
     }

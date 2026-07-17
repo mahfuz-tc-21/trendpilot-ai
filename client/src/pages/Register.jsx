@@ -49,7 +49,7 @@ export default function Register() {
         </div>
         <div className="space-y-1.5">
           <h1 className="text-2xl font-extrabold tracking-tight text-zinc-100 font-heading">
-            Create account 🚀
+            Create account
           </h1>
           <p className="text-xs text-zinc-450">
             Sign up to continue to your TrendPilot AI dashboard

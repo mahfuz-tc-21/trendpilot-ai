@@ -3,9 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { FileText, Search, Filter, PlayCircle, Globe, ArrowRight, Activity, Calendar, Trash2, CheckSquare, Square } from "lucide-react";
 import api from "../services/api.js";
+import { useToastStore } from "../services/toastStore.js";
+import { useConfirmStore } from "../services/confirmStore.js";
 
 export default function ContentLibrary() {
   const navigate = useNavigate();
+  const showToast = useToastStore((state) => state.showToast);
+  const showConfirm = useConfirmStore((state) => state.showConfirm);
   const [search, setSearch] = useState("");
   const [type, setType] = useState("");
   const [status, setStatus] = useState("");
@@ -47,45 +51,57 @@ export default function ContentLibrary() {
     }
   };
 
-  const handleTrashSingle = async (e, itemId) => {
+  const handleTrashSingle = (e, itemId) => {
     e.stopPropagation();
-    if (!window.confirm("This content will be hidden from all analytics, trends, AI recommendations, and searches. It will remain in Trash for 10 days before being permanently deleted.")) {
-      return;
-    }
-    setDeletingId(itemId);
-    try {
-      await api.put("/api/trash/move", { ids: [itemId], type: "content" });
-      setSelectedIds(prev => {
-        const next = new Set(prev);
-        next.delete(itemId);
-        return next;
-      });
-      refetch();
-    } catch (err) {
-      alert(err.response?.data?.message || "Failed to trash item");
-    } finally {
-      setDeletingId(null);
-    }
+    showConfirm({
+      title: "Move Item to Trash?",
+      description: "This content will be hidden from all analytics, trends, AI recommendations, and searches. It will remain in Trash for 10 days before being permanently deleted.",
+      confirmLabel: "Move to Trash",
+      confirmType: "danger",
+      onConfirm: async () => {
+        setDeletingId(itemId);
+        try {
+          await api.put("/api/trash/move", { ids: [itemId], type: "content" });
+          setSelectedIds(prev => {
+            const next = new Set(prev);
+            next.delete(itemId);
+            return next;
+          });
+          refetch();
+          showToast("Item moved to Trash successfully!", "success");
+        } catch (err) {
+          showToast(err.response?.data?.message || "Failed to trash item", "error");
+        } finally {
+          setDeletingId(null);
+        }
+      }
+    });
   };
 
-  const handleBulkTrash = async () => {
+  const handleBulkTrash = () => {
     if (selectedIds.size === 0) return;
-    if (!window.confirm(`Are you sure you want to move ${selectedIds.size} items to Trash? They will remain in Trash for 10 days before permanent deletion.`)) {
-      return;
-    }
-    setIsBulkProcessing(true);
-    try {
-      await api.put("/api/trash/move", {
-        ids: Array.from(selectedIds),
-        type: "content"
-      });
-      setSelectedIds(new Set());
-      refetch();
-    } catch (err) {
-      alert(err.response?.data?.message || "Failed to bulk trash items");
-    } finally {
-      setIsBulkProcessing(false);
-    }
+    showConfirm({
+      title: `Move ${selectedIds.size} Items to Trash?`,
+      description: `Are you sure you want to move these ${selectedIds.size} items to Trash? They will remain in Trash for 10 days before permanent deletion.`,
+      confirmLabel: "Move Selected",
+      confirmType: "danger",
+      onConfirm: async () => {
+        setIsBulkProcessing(true);
+        try {
+          await api.put("/api/trash/move", {
+            ids: Array.from(selectedIds),
+            type: "content"
+          });
+          setSelectedIds(new Set());
+          refetch();
+          showToast("Selected items moved to Trash successfully!", "success");
+        } catch (err) {
+          showToast(err.response?.data?.message || "Failed to bulk trash items", "error");
+        } finally {
+          setIsBulkProcessing(false);
+        }
+      }
+    });
   };
 
   return (

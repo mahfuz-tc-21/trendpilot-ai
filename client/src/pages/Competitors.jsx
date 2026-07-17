@@ -8,11 +8,15 @@ import {
 import api from "../services/api.js";
 import { useAuthStore } from "../services/authStore.js";
 import { useNavigate } from "react-router-dom";
+import { useConfirmStore } from "../services/confirmStore.js";
+import { useToastStore } from "../services/toastStore.js";
 
 export default function CompetitorsPage() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const showConfirm = useConfirmStore((state) => state.showConfirm);
+  const showToast = useToastStore((state) => state.showToast);
 
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedCompetitors, setSelectedCompetitors] = useState([]);
@@ -100,7 +104,7 @@ export default function CompetitorsPage() {
       setPageUrlInput("");
     },
     onError: (err) => {
-      alert(err.response?.data?.message || err.message || "Failed to add competitor");
+      showToast(err.response?.data?.message || err.message || "Failed to add competitor", "error");
     }
   });
 
@@ -122,7 +126,7 @@ export default function CompetitorsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["competitorPosts"] });
-      alert("Competitor crawl complete. Ingested latest posts.");
+      showToast("Competitor crawl complete. Ingested latest posts.", "success");
     }
   });
 
@@ -133,7 +137,7 @@ export default function CompetitorsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["brandProfile"] });
-      alert("Brand Profile saved successfully!");
+      showToast("Brand Profile saved successfully!", "success");
     }
   });
 
@@ -146,7 +150,7 @@ export default function CompetitorsPage() {
       queryClient.invalidateQueries({ queryKey: ["competitorReports"] });
     },
     onError: (err) => {
-      alert(err.response?.data?.message || err.message || "Comparison failed");
+      showToast(err.response?.data?.message || err.message || "Comparison failed", "error");
     }
   });
 
@@ -159,14 +163,14 @@ export default function CompetitorsPage() {
       queryClient.invalidateQueries({ queryKey: ["competitorReports"] });
     },
     onError: (err) => {
-      alert(err.response?.data?.message || err.message || "Failed to generate strategy");
+      showToast(err.response?.data?.message || err.message || "Failed to generate strategy", "error");
     }
   });
 
   const handleAddSubmit = (e) => {
     e.preventDefault();
     if (!user?.geminiApiKey) {
-      alert("⚠️ Please add your Gemini API key in Settings before performing competitor intelligence crawls.");
+      showToast("Please add your Gemini API key in Settings before performing competitor intelligence crawls.", "error");
       navigate("/settings");
       return;
     }
@@ -190,12 +194,12 @@ export default function CompetitorsPage() {
 
   const handleCompareClick = () => {
     if (!user?.geminiApiKey) {
-      alert("⚠️ Please add your Gemini API key in Settings before performing AI comparisons.");
+      showToast("Please add your Gemini API key in Settings before performing AI comparisons.", "error");
       navigate("/settings");
       return;
     }
     if (selectedCompetitors.length === 0) {
-      alert("Please select at least one competitor to compare.");
+      showToast("Please select at least one competitor to compare.", "error");
       return;
     }
     compareMutation.mutate(selectedCompetitors);
@@ -203,7 +207,7 @@ export default function CompetitorsPage() {
 
   const handleWeeklyStrategyClick = () => {
     if (!user?.geminiApiKey) {
-      alert("⚠️ Please add your Gemini API key in Settings before compiling AI weekly content strategies.");
+      showToast("Please add your Gemini API key in Settings before compiling AI weekly content strategies.", "error");
       navigate("/settings");
       return;
     }
@@ -212,7 +216,7 @@ export default function CompetitorsPage() {
 
   const handleBeatClick = async (post) => {
     if (!user?.geminiApiKey) {
-      alert("⚠️ Please add your Gemini API key in Settings before upgrading competitor assets.");
+      showToast("Please add your Gemini API key in Settings before upgrading competitor assets.", "error");
       navigate("/settings");
       return;
     }
@@ -225,23 +229,29 @@ export default function CompetitorsPage() {
       const res = await api.post(`/api/competitors/posts/${post._id}/beat`);
       setBeatenOutput(res.data.data);
     } catch (err) {
-      alert(err.response?.data?.message || err.message || "Failed to generate content upgrade");
+      showToast(err.response?.data?.message || err.message || "Failed to generate content upgrade", "error");
       setIsBeatOpen(false);
     } finally {
       setBeatenLoading(false);
     }
   };
 
-  const handleTrashPost = async (postId) => {
-    if (!window.confirm("This content will be hidden from all analytics, trends, AI recommendations, and searches. It will remain in Trash for 10 days before being permanently deleted.")) {
-      return;
-    }
-    try {
-      await api.put("/api/trash/move", { ids: [postId], type: "competitor" });
-      queryClient.invalidateQueries({ queryKey: ["competitorPosts"] });
-    } catch (err) {
-      alert(err.response?.data?.message || "Failed to move post to trash");
-    }
+  const handleTrashPost = (postId) => {
+    showConfirm({
+      title: "Move Competitor Post to Trash?",
+      description: "This content will be hidden from all analytics, trends, AI recommendations, and searches. It will remain in Trash for 10 days before being permanently deleted.",
+      confirmLabel: "Move to Trash",
+      confirmType: "danger",
+      onConfirm: async () => {
+        try {
+          await api.put("/api/trash/move", { ids: [postId], type: "competitor" });
+          queryClient.invalidateQueries({ queryKey: ["competitorPosts"] });
+          showToast("Competitor post moved to Trash successfully!", "success");
+        } catch (err) {
+          showToast(err.response?.data?.message || "Failed to move post to trash", "error");
+        }
+      }
+    });
   };
 
   const handleToggleSelectComp = (id) => {

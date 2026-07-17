@@ -8,10 +8,14 @@ import {
   AlertCircle, Sparkles
 } from "lucide-react";
 import api from "../services/api.js";
+import { useConfirmStore } from "../services/confirmStore.js";
+import { useToastStore } from "../services/toastStore.js";
 
 export default function AIHistory() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const showConfirm = useConfirmStore((state) => state.showConfirm);
+  const showToast = useToastStore((state) => state.showToast);
 
   // Filter and search states
   const [search, setSearch] = useState("");
@@ -62,7 +66,10 @@ export default function AIHistory() {
       const res = await api.delete(`/api/workspace/${docId}`);
       return res.data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["workspace-history"] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workspace-history"] });
+      showToast("Document moved to Trash successfully!", "success");
+    }
   });
 
   const duplicateMutation = useMutation({
@@ -70,7 +77,10 @@ export default function AIHistory() {
       const res = await api.post(`/api/workspace/${docId}/duplicate`);
       return res.data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["workspace-history"] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workspace-history"] });
+      showToast("Document duplicated successfully!", "success");
+    }
   });
 
   // Handlers
@@ -437,9 +447,15 @@ export default function AIHistory() {
                 </button>
                 <button
                   onClick={() => {
-                    if (window.confirm("Move this document to trash?")) {
-                      deleteMutation.mutate(doc._id);
-                    }
+                    showConfirm({
+                      title: "Move Document to Trash?",
+                      description: "Are you sure you want to move this document to Trash? It will remain there for 10 days before permanent deletion.",
+                      confirmLabel: "Move to Trash",
+                      confirmType: "danger",
+                      onConfirm: () => {
+                        deleteMutation.mutate(doc._id);
+                      }
+                    });
                   }}
                   disabled={deleteMutation.isPending}
                   className="p-1.5 text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer ml-auto disabled:opacity-40"

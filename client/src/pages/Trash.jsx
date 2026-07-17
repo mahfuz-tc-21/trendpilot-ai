@@ -18,10 +18,14 @@ import {
   Info
 } from "lucide-react";
 import api from "../services/api.js";
+import { useConfirmStore } from "../services/confirmStore.js";
+import { useToastStore } from "../services/toastStore.js";
 
 export default function Trash() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const showConfirm = useConfirmStore((state) => state.showConfirm);
+  const showToast = useToastStore((state) => state.showToast);
 
   // Filters state
   const [search, setSearch] = useState("");
@@ -103,6 +107,7 @@ export default function Trash() {
       queryClient.invalidateQueries({ queryKey: ["competitorPosts"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-data"] });
       refetchSuggestions();
+      showToast("Item(s) restored successfully!", "success");
     }
   });
 
@@ -113,6 +118,7 @@ export default function Trash() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trash-items"] });
       refetchSuggestions();
+      showToast("Item(s) permanently deleted!", "success");
     }
   });
 
@@ -124,6 +130,7 @@ export default function Trash() {
       queryClient.invalidateQueries({ queryKey: ["trash-items"] });
       setSelectedItems(new Set());
       refetchSuggestions();
+      showToast("Trash bin emptied successfully!", "success");
     }
   });
 
@@ -144,10 +151,15 @@ export default function Trash() {
   };
 
   const handleDeletePermanent = async (id, type) => {
-    if (!window.confirm("Are you sure you want to permanently delete this item? This action is irreversible.")) {
-      return;
-    }
-    deleteMutation.mutate({ ids: [id], type });
+    showConfirm({
+      title: "Permanently Delete Item?",
+      description: "Are you sure you want to permanently delete this item? This action is irreversible.",
+      confirmLabel: "Delete",
+      confirmType: "danger",
+      onConfirm: () => {
+        deleteMutation.mutate({ ids: [id], type });
+      }
+    });
   };
 
   const handleBulkRestore = async () => {
@@ -171,33 +183,44 @@ export default function Trash() {
   };
 
   const handleBulkDeletePermanent = async () => {
-    if (!window.confirm(`Are you sure you want to permanently delete these ${selectedItems.size} items? This action cannot be undone.`)) {
-      return;
-    }
-    const contents = [];
-    const competitorsList = [];
+    if (selectedItems.size === 0) return;
+    showConfirm({
+      title: `Permanently Delete ${selectedItems.size} Items?`,
+      description: `Are you sure you want to permanently delete these ${selectedItems.size} items? This action cannot be undone.`,
+      confirmLabel: "Delete Selected",
+      confirmType: "danger",
+      onConfirm: async () => {
+        const contents = [];
+        const competitorsList = [];
 
-    selectedItems.forEach(key => {
-      const [type, id] = key.split(":");
-      if (type === "content") contents.push(id);
-      else competitorsList.push(id);
+        selectedItems.forEach(key => {
+          const [type, id] = key.split(":");
+          if (type === "content") contents.push(id);
+          else competitorsList.push(id);
+        });
+
+        if (contents.length > 0) {
+          await deleteMutation.mutateAsync({ ids: contents, type: "content" });
+        }
+        if (competitorsList.length > 0) {
+          await deleteMutation.mutateAsync({ ids: competitorsList, type: "competitor" });
+        }
+
+        setSelectedItems(new Set());
+      }
     });
-
-    if (contents.length > 0) {
-      await deleteMutation.mutateAsync({ ids: contents, type: "content" });
-    }
-    if (competitorsList.length > 0) {
-      await deleteMutation.mutateAsync({ ids: competitorsList, type: "competitor" });
-    }
-
-    setSelectedItems(new Set());
   };
 
   const handleEmptyTrash = async () => {
-    if (!window.confirm("Empty entire trash bin? All items will be permanently deleted from the database. This action is irreversible!")) {
-      return;
-    }
-    emptyTrashMutation.mutate();
+    showConfirm({
+      title: "Empty Entire Trash Bin?",
+      description: "All items will be permanently deleted from the database. This action is irreversible!",
+      confirmLabel: "Empty Trash",
+      confirmType: "danger",
+      onConfirm: () => {
+        emptyTrashMutation.mutate();
+      }
+    });
   };
 
   const handleTrashSuggestion = async (id, type) => {
@@ -302,14 +325,14 @@ export default function Trash() {
               <div className="flex gap-2">
                 <button
                   onClick={handleBulkRestore}
-                  className="px-3 py-1.5 bg-indigo-650 hover:bg-indigo-600 border border-indigo-500/20 rounded-xl text-white font-bold flex items-center gap-1.5 cursor-pointer"
+                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 border border-indigo-500/20 rounded-xl text-white font-bold flex items-center gap-1.5 cursor-pointer"
                 >
                   <RotateCcw className="h-3.5 w-3.5" />
                   Restore Selected
                 </button>
                 <button
                   onClick={handleBulkDeletePermanent}
-                  className="px-3 py-1.5 bg-rose-650 hover:bg-rose-500 border border-rose-500/20 rounded-xl text-white font-bold flex items-center gap-1.5 cursor-pointer"
+                  className="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 border border-rose-500/20 rounded-xl text-white font-bold flex items-center gap-1.5 cursor-pointer"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   Delete Permanently
@@ -377,11 +400,11 @@ export default function Trash() {
                       </button>
                       <button
                         onClick={() => handleDeletePermanent(item.id, item.type)}
-                        className="px-2.5 py-1.5 bg-rose-600/10 hover:bg-rose-650 border border-rose-500/15 hover:border-rose-500/30 text-[10px] font-bold rounded-lg text-rose-400 hover:text-white cursor-pointer transition-colors flex items-center gap-1"
+                        className="px-2.5 py-1.5 bg-rose-600/10 hover:bg-rose-600/20 border border-rose-500/15 hover:border-rose-500/30 text-[10px] font-bold rounded-lg text-rose-400 cursor-pointer transition-colors flex items-center gap-1"
                         title="Delete Permanently"
                       >
                         <Trash2 className="h-3 w-3" />
-                        Purge
+                        Delete
                       </button>
                     </div>
                   </div>
@@ -425,7 +448,7 @@ export default function Trash() {
                   <div className="flex justify-end">
                     <button
                       onClick={() => handleTrashSuggestion(item.id, item.type)}
-                      className="px-2.5 py-1.5 bg-rose-950/20 hover:bg-rose-600 hover:text-white border border-rose-500/20 text-[9px] font-bold rounded-lg text-rose-400 cursor-pointer transition-colors"
+                      className="px-2.5 py-1.5 bg-rose-955/20 hover:bg-rose-600/20 border border-rose-500/20 text-[9px] font-bold rounded-lg text-rose-400 cursor-pointer transition-colors"
                     >
                       Trash Suggestion
                     </button>

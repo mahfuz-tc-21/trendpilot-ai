@@ -25,9 +25,11 @@ import {
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import dashboardService from "../services/dashboardService.js";
+import { useToastStore } from "../services/toastStore.js";
 
 export default function Trends() {
   const navigate = useNavigate();
+  const showToast = useToastStore((state) => state.showToast);
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedTopic = searchParams.get("topic") || "";
   const [searchQuery, setSearchQuery] = useState("");
@@ -79,8 +81,9 @@ export default function Trends() {
     try {
       const result = await dashboardService.generateTrendPackage(selectedTopic);
       setGeneratedPackage(result);
+      showToast("Trend package generated successfully!", "success");
     } catch (err) {
-      alert(err.message || "Failed to generate creator package");
+      showToast(err.message || "Failed to generate creator package", "error");
     } finally {
       setGenerating(false);
     }
@@ -93,8 +96,9 @@ export default function Trends() {
     try {
       const strategyText = await dashboardService.beatCompetitorStrategy(competitorName, selectedTopic);
       setCompetitorStrategy(strategyText);
+      showToast("Competitor beat strategy compiled successfully!", "success");
     } catch (err) {
-      alert(err.message || "Failed to compile competitor beat blueprint");
+      showToast(err.message || "Failed to compile competitor beat blueprint", "error");
       setBeatingCompetitor(null);
     }
   };

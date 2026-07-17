@@ -20,9 +20,11 @@ import {
 import sourceService from "../services/sourceService.js";
 import SourceDialog from "../components/SourceDialog.jsx";
 import DeleteConfirmDialog from "../components/DeleteConfirmDialog.jsx";
+import { useToastStore } from "../services/toastStore.js";
 
 export default function Sources() {
   const queryClient = useQueryClient();
+  const showToast = useToastStore((state) => state.showToast);
 
   // Search, Filter, Pagination Local State
   const [searchTerm, setSearchTerm] = useState("");
@@ -55,9 +57,10 @@ export default function Sources() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sources"] });
       setIsAddOpen(false);
+      showToast("Source created successfully!", "success");
     },
     onError: (error) => {
-      alert(error.response?.data?.message || error.message || "Failed to create source");
+      showToast(error.response?.data?.message || error.message || "Failed to create source", "error");
     }
   });
 
@@ -67,9 +70,10 @@ export default function Sources() {
       queryClient.invalidateQueries({ queryKey: ["sources"] });
       setIsEditOpen(false);
       setSelectedSource(null);
+      showToast("Source updated successfully!", "success");
     },
     onError: (error) => {
-      alert(error.response?.data?.message || error.message || "Failed to update source");
+      showToast(error.response?.data?.message || error.message || "Failed to update source", "error");
     }
   });
 
@@ -79,6 +83,10 @@ export default function Sources() {
       queryClient.invalidateQueries({ queryKey: ["sources"] });
       setIsDeleteOpen(false);
       setSelectedSource(null);
+      showToast("Source deleted successfully!", "success");
+    },
+    onError: (error) => {
+      showToast(error.response?.data?.message || error.message || "Failed to delete source", "error");
     }
   });
 

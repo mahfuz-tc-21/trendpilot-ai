@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { Settings, Shield, User, Clock, Bell, Globe } from "lucide-react";
 import { useAuthStore } from "../services/authStore.js";
+import { useToastStore } from "../services/toastStore.js";
 
 export default function SettingsPage() {
   const { user, updateProfile } = useAuthStore();
+  const showToast = useToastStore((state) => state.showToast);
   const [schedulerEnabled, setSchedulerEnabled] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "dark");
   const [emailAlerts, setEmailAlerts] = useState(true);
@@ -32,9 +34,9 @@ export default function SettingsPage() {
     setUpdatingKey(true);
     try {
       await updateProfile({ geminiApiKey: apiKeyInput });
-      alert("Gemini API Key updated successfully!");
+      showToast("Gemini API Key updated successfully!", "success");
     } catch (err) {
-      alert(err.message || "Failed to save API key");
+      showToast(err.message || "Failed to save API key", "error");
     } finally {
       setUpdatingKey(false);
     }
@@ -45,9 +47,9 @@ export default function SettingsPage() {
     setUpdatingLanguage(true);
     try {
       await updateProfile({ language: languageInput });
-      alert("Language preference updated successfully!");
+      showToast("Language preference updated successfully!", "success");
     } catch (err) {
-      alert(err.message || "Failed to save language preference");
+      showToast(err.message || "Failed to save language preference", "error");
     } finally {
       setUpdatingLanguage(false);
     }

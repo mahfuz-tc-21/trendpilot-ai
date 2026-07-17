@@ -20,6 +20,8 @@ import Settings from "./pages/Settings.jsx";
 import Competitors from "./pages/Competitors.jsx";
 import Trash from "./pages/Trash.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import ToastContainer from "./components/ToastContainer.jsx";
+import ConfirmDialogContainer from "./components/ConfirmDialogContainer.jsx";
 
 /**
  * Main application component configuring React Router paths.
@@ -78,6 +80,8 @@ export default function App() {
           </Route>
         </Route>
       </Routes>
+      <ToastContainer />
+      <ConfirmDialogContainer />
     </BrowserRouter>
   );
 }
