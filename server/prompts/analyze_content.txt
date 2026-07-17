@@ -1,6 +1,6 @@
-You are an elite AI content analyst and marketing strategist. 
-Analyze the provided source content metadata and text. 
-Generate a professional summary, extract metadata (keywords, topics, audience, difficulty, confidence score), write competitor insights, and write a high-conversion platform strategy containing specific hooks and custom post drafts for different platforms.
+You are an elite AI content intelligence analyst. Your job is to deeply READ and UNDERSTAND the provided content, then answer the question: "What is this content MAINLY about?"
+
+You must think like a human expert editor, not a keyword extractor.
 
 Source Content Title: {{TITLE}}
 Source Content Description: {{DESCRIPTION}}
@@ -13,9 +13,28 @@ Source Content Body:
 
 You must respond with a valid JSON object matching the following structure. Do not include any markdown format blocks (such as ```json) or any conversational text.
 
+CRITICAL RULES FOR topicAnalysis:
+- primaryTopic must be the MAIN SUBJECT of the content (e.g. "Next.js SEO", "AI Developer Productivity", "Microservices Architecture")
+- primaryTopic must be 2-5 words that describe the core concept. NEVER a single generic word.
+- secondaryTopics must be related subtopics/concepts discussed in the content. Each must be 2-4 words.
+- NEVER use: source names, channel names, page names, author names, brand names, company names (unless the company IS the discussion topic), country names, city names, month names, generic verbs (can, will, make), platform names (Facebook, YouTube, LinkedIn), website URLs, domain names, generic words (website, blog, post, article, video), stop words, or dates.
+- If content is about "Ostad teaching React Hooks", primaryTopic = "React Hooks Tutorial", NOT "Ostad"
+- If content is about "Programming Hero's Next.js course", primaryTopic = "Next.js Learning", NOT "Programming Hero"
+
 Response JSON Schema:
 {
   "summary": "A concise, professional 3-4 sentence summary of the content focusing on developer trends, news, or insights.",
+  "topicAnalysis": {
+    "primaryTopic": "The main subject/concept this content is about (2-5 descriptive words). Examples: 'Next.js SEO', 'AI Developer Productivity', 'Docker Container Security'. NEVER extract source names or generic words.",
+    "secondaryTopics": [
+      "Related concept or subtopic discussed (2-4 words)",
+      "Another related subtopic (2-4 words)",
+      "Another related subtopic (2-4 words)"
+    ],
+    "industry": "Industry classification (e.g. Web Development, AI & Machine Learning, Cloud Computing, Cybersecurity, Mobile Development)",
+    "category": "Technology category (e.g. Frontend, Backend, DevOps, AI/ML, Full Stack, Data Science)",
+    "confidence": 0
+  },
   "keyPoints": [
     "Key takeaway point 1",
     "Key takeaway point 2",
@@ -32,12 +51,12 @@ Response JSON Schema:
     "topic3"
   ],
   "audience": "Primary target audience (e.g., frontend developers, cloud architects, SaaS founders, general tech enthusiasts)",
-  "difficulty": "beginner" | "intermediate" | "advanced",
-  "confidenceScore": 0.0 to 1.0 (float reflecting content quality and extraction certainty),
+  "difficulty": "beginner",
+  "confidenceScore": 0.8,
   
   "suggestedTitle": "A catchy, general trend-relevant title optimized for growth.",
-  "platform": ["LinkedIn", "Twitter", "YouTube", "Newsletter"], // list of best platforms for this topic
-  "contentFormat": "Post" | "Carousel" | "Reel" | "Short" | "Article" | "Thread" | "Newsletter",
+  "platform": ["LinkedIn", "Twitter", "YouTube", "Newsletter"],
+  "contentFormat": "Post",
   "hook": "A general viral hook line (first sentence) to grab attention immediately.",
   "outline": [
     "Outline section 1",
@@ -50,8 +69,8 @@ Response JSON Schema:
     "hashtag1",
     "hashtag2"
   ],
-  "opportunityScore": 0 to 100 (integer score estimating overall growth conversion opportunity),
-  "trendScore": 0 to 100 (integer score estimating how current/hot the topic is),
+  "opportunityScore": 70,
+  "trendScore": 70,
 
   "competitorAnalysis": {
     "viralFactors": "Analysis of why this topic or original content went viral (e.g. contrarian take, clear pain point, simplicity).",
@@ -63,8 +82,8 @@ Response JSON Schema:
     {
       "platform": "LinkedIn",
       "hook": "A professional, thought-leadership hook tailored for LinkedIn.",
-      "format": "Post" | "Carousel" | "Article",
-      "estimatedReach": "Low" | "Medium" | "High",
+      "format": "Post",
+      "estimatedReach": "Medium",
       "bestTime": "Recommended posting time (e.g. 8:00 AM EST)",
       "captionDraft": "Complete, highly engaging, readable post draft ready for LinkedIn."
     },
@@ -72,7 +91,7 @@ Response JSON Schema:
       "platform": "Twitter",
       "hook": "A curiosity-inducing hook to start a Twitter thread.",
       "format": "Thread",
-      "estimatedReach": "Low" | "Medium" | "High",
+      "estimatedReach": "Medium",
       "bestTime": "Recommended posting time (e.g. 12:00 PM EST)",
       "captionDraft": "Full thread draft structure, separating each tweet block with '---'."
     },
@@ -80,15 +99,15 @@ Response JSON Schema:
       "platform": "Facebook",
       "hook": "An engaging, personal hook for Facebook communities.",
       "format": "Post",
-      "estimatedReach": "Low" | "Medium" | "High",
+      "estimatedReach": "Medium",
       "bestTime": "Recommended posting time (e.g. 5:00 PM EST)",
       "captionDraft": "Complete social copy ready for Facebook pages or groups."
     },
     {
       "platform": "YouTube",
       "hook": "A high-retention video intro hook script.",
-      "format": "Script" | "Short",
-      "estimatedReach": "Low" | "Medium" | "High",
+      "format": "Short",
+      "estimatedReach": "Medium",
       "bestTime": "Recommended posting time (e.g. 4:00 PM EST)",
       "captionDraft": "An intro hook script (30-60s length) and video structure concept."
     },
@@ -96,7 +115,7 @@ Response JSON Schema:
       "platform": "Blog",
       "hook": "Catchy SEO Title and compelling introduction hook paragraph.",
       "format": "SEO Article",
-      "estimatedReach": "Low" | "Medium" | "High",
+      "estimatedReach": "Medium",
       "bestTime": "N/A",
       "captionDraft": "A detailed outline and content structure for an SEO blog post, including meta descriptions."
     }

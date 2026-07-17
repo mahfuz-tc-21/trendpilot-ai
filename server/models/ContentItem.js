@@ -64,6 +64,13 @@ const contentItemSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null
+    },
+    topicAnalysis: {
+      primaryTopic: { type: String, default: "" },
+      secondaryTopics: [{ type: String }],
+      industry: { type: String, default: "" },
+      category: { type: String, default: "" },
+      confidence: { type: Number, default: 0 }
     }
   },
   {

@@ -487,93 +487,118 @@ class DashboardService {
    * Helper to build and group MongoDB documents by cluster keys.
    */
   async computeClusters(userId) {
-    const userObjectId = new mongoose.Types.ObjectId(userId);
     const ignoreList = await this.getIgnoreList(userId);
 
-    const contentItems = await ContentItem.find({ userId }).populate("sourceId");
-    const competitorPosts = await CompetitorPost.find({ userId }).populate("competitorId");
-    const summaries = await Summary.find({ userId });
+    // Only include active (non-deleted) items
+    const contentItems = await ContentItem.find({ userId, isDeleted: { $ne: true } }).populate("sourceId");
+    const competitorPosts = await CompetitorPost.find({ userId, isDeleted: { $ne: true } }).populate("competitorId");
 
+    // Fallback: load summaries for items that don't have topicAnalysis yet
+    const summaries = await Summary.find({ userId });
     const summaryMap = new Map();
     for (const s of summaries) {
-      if (s.contentId) {
-        summaryMap.set(s.contentId.toString(), s);
-      }
+      if (s.contentId) summaryMap.set(s.contentId.toString(), s);
     }
 
     const clusters = {};
-    const processItem = (item, type, title, desc, rawText, summaryDoc, sourceName, sourceId) => {
-      const allEntities = new Set();
-      if (summaryDoc) {
-        if (summaryDoc.topics) summaryDoc.topics.forEach(t => allEntities.add(t));
-        if (summaryDoc.keywords) summaryDoc.keywords.forEach(k => allEntities.add(k));
+
+    /**
+     * Register an item under a given topic key.
+     * topic: human-readable topic string (e.g. "Next.js SEO")
+     * item: ContentItem or CompetitorPost document
+     * type: "article" | "youtube" | "facebook"
+     * sourceName: display name of source
+     * sourceId: sourceId document (for platform detection)
+     * isPrimary: true if this is the primaryTopic (gets higher weight)
+     */
+    const registerTopic = (topic, item, type, sourceName, sourceId, isPrimary = false) => {
+      if (!topic || typeof topic !== "string") return;
+      const trimmed = topic.trim();
+      if (trimmed.length < 3) return;
+
+      // Ignore list check
+      const tLower = trimmed.toLowerCase();
+      if (ignoreList.has(tLower)) return;
+      for (const term of ignoreList) {
+        if (tLower === term || (term.length > 3 && tLower.split(" ").some(w => w === term))) return;
       }
-      this.extractEntitiesFromText(title).forEach(e => allEntities.add(e));
-      this.extractEntitiesFromText(desc).forEach(e => allEntities.add(e));
-      this.extractEntitiesFromText(rawText).forEach(e => allEntities.add(e));
 
-      for (const entity of allEntities) {
-        const lowerEntity = entity.toLowerCase().trim();
-        if (ignoreList.has(lowerEntity)) continue;
+      const clusterKey = this.getClusterKey(trimmed);
+      if (!clusterKey || clusterKey.length < 2) return;
 
-        let shouldIgnore = false;
-        for (const term of ignoreList) {
-          if (lowerEntity === term || (term.length > 3 && lowerEntity.includes(term))) {
-            shouldIgnore = true;
-            break;
-          }
-        }
-        if (shouldIgnore) continue;
+      if (!clusters[clusterKey]) {
+        clusters[clusterKey] = {
+          rawVariants: {},
+          articles: [],
+          videos: [],
+          fbPosts: [],
+          sources: [],
+          isPrimaryHit: false
+        };
+      }
 
-        const clusterKey = this.getClusterKey(entity);
-        if (!clusterKey || clusterKey.length < 2) continue;
+      // Track variant frequency — primary topics get 3x weight
+      const weight = isPrimary ? 3 : 1;
+      clusters[clusterKey].rawVariants[trimmed] = (clusters[clusterKey].rawVariants[trimmed] || 0) + weight;
+      if (isPrimary) clusters[clusterKey].isPrimaryHit = true;
 
-        if (!clusters[clusterKey]) {
-          clusters[clusterKey] = {
-            rawVariants: {},
-            articles: [],
-            videos: [],
-            fbPosts: [],
-            sources: []
-          };
-        }
+      // Register item in correct bucket (deduplicated)
+      const itemId = item._id.toString();
+      if (type === "article") {
+        if (!clusters[clusterKey].articles.some(a => a._id.toString() === itemId))
+          clusters[clusterKey].articles.push(item);
+      } else if (type === "youtube") {
+        if (!clusters[clusterKey].videos.some(v => v._id.toString() === itemId))
+          clusters[clusterKey].videos.push(item);
+      } else if (type === "facebook") {
+        if (!clusters[clusterKey].fbPosts.some(f => f._id.toString() === itemId))
+          clusters[clusterKey].fbPosts.push(item);
+      }
 
-        clusters[clusterKey].rawVariants[entity] = (clusters[clusterKey].rawVariants[entity] || 0) + 1;
+      const sourcePlatform =
+        type === "facebook" ? "facebook" :
+        type === "youtube" ? "youtube" :
+        (sourceId?.type === "blog" ? "blog" : "website");
 
-        if (type === "article") {
-          if (!clusters[clusterKey].articles.some(a => a._id.toString() === item._id.toString())) {
-            clusters[clusterKey].articles.push(item);
-          }
-        } else if (type === "youtube") {
-          if (!clusters[clusterKey].videos.some(v => v._id.toString() === item._id.toString())) {
-            clusters[clusterKey].videos.push(item);
-          }
-        } else if (type === "facebook") {
-          if (!clusters[clusterKey].fbPosts.some(f => f._id.toString() === item._id.toString())) {
-            clusters[clusterKey].fbPosts.push(item);
-          }
-        }
-
-        const sourcePlatform = type === "facebook" ? "facebook" : (type === "youtube" ? "youtube" : (sourceId?.category === "blog" ? "blog" : "website"));
-        if (sourceName && !clusters[clusterKey].sources.some(s => s.name === sourceName)) {
-          clusters[clusterKey].sources.push({
-            name: sourceName,
-            type: sourcePlatform
-          });
-        }
+      if (sourceName && !clusters[clusterKey].sources.some(s => s.name === sourceName)) {
+        clusters[clusterKey].sources.push({ name: sourceName, type: sourcePlatform });
       }
     };
 
+    // Process ContentItems
     for (const item of contentItems) {
-      const summaryDoc = summaryMap.get(item._id.toString());
       const type = item.sourceId?.type === "youtube" ? "youtube" : "article";
       const sourceName = item.sourceId?.name || item.author || "Unknown Source";
-      processItem(item, type, item.title, item.description, item.rawText, summaryDoc, sourceName, item.sourceId);
+
+      if (item.topicAnalysis?.primaryTopic) {
+        // ✅ Use structured AI topic analysis
+        registerTopic(item.topicAnalysis.primaryTopic, item, type, sourceName, item.sourceId, true);
+        (item.topicAnalysis.secondaryTopics || []).forEach(t =>
+          registerTopic(t, item, type, sourceName, item.sourceId, false)
+        );
+      } else {
+        // ⚠️ Fallback for older items without topicAnalysis — use Summary topics only (not raw text)
+        const summaryDoc = summaryMap.get(item._id.toString());
+        if (summaryDoc?.topics) {
+          summaryDoc.topics.forEach(t =>
+            registerTopic(t, item, type, sourceName, item.sourceId, false)
+          );
+        }
+      }
     }
 
+    // Process CompetitorPosts
     for (const post of competitorPosts) {
       const sourceName = post.competitorId?.brandName || "Competitor";
-      processItem(post, "facebook", post.title, post.description, post.rawText, null, sourceName, null);
+
+      if (post.topicAnalysis?.primaryTopic) {
+        // ✅ Use structured AI topic analysis
+        registerTopic(post.topicAnalysis.primaryTopic, post, "facebook", sourceName, null, true);
+        (post.topicAnalysis.secondaryTopics || []).forEach(t =>
+          registerTopic(t, post, "facebook", sourceName, null, false)
+        );
+      }
+      // Competitor posts without topicAnalysis are skipped — they had no AI processing
     }
 
     return clusters;

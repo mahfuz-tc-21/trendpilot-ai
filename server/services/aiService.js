@@ -353,6 +353,50 @@ CRITICAL INSTRUCTION ON KEYWORDS AND TOPICS EXTRACTION:
       }
       await recDoc.save();
 
+      // 7. Save topicAnalysis back into ContentItem for direct trend pipeline access
+      const rawTopicAnalysis = finalAnalysisJson?.topicAnalysis;
+      if (rawTopicAnalysis && typeof rawTopicAnalysis.primaryTopic === "string" && rawTopicAnalysis.primaryTopic.trim()) {
+        // Filter secondaryTopics through ignore list
+        const filteredSecondary = Array.isArray(rawTopicAnalysis.secondaryTopics)
+          ? rawTopicAnalysis.secondaryTopics
+              .filter(t => typeof t === "string" && t.trim().length > 1)
+              .filter(t => {
+                const tl = t.toLowerCase().trim();
+                if (ignoreTerms.has(tl)) return false;
+                for (const term of ignoreTerms) {
+                  if (tl === term || (term.length > 3 && tl.includes(term))) return false;
+                }
+                return true;
+              })
+              .slice(0, 6)
+          : [];
+
+        // Only save if primaryTopic itself is not a banned term
+        const ptLower = rawTopicAnalysis.primaryTopic.toLowerCase().trim();
+        let ptBanned = false;
+        if (ignoreTerms.has(ptLower)) {
+          ptBanned = true;
+        } else {
+          for (const term of ignoreTerms) {
+            if (ptLower === term || (term.length > 3 && ptLower.split(" ").some(w => w === term))) {
+              ptBanned = true;
+              break;
+            }
+          }
+        }
+
+        if (!ptBanned) {
+          contentItem.topicAnalysis = {
+            primaryTopic: rawTopicAnalysis.primaryTopic.trim(),
+            secondaryTopics: filteredSecondary,
+            industry: typeof rawTopicAnalysis.industry === "string" ? rawTopicAnalysis.industry : "",
+            category: typeof rawTopicAnalysis.category === "string" ? rawTopicAnalysis.category : "",
+            confidence: typeof rawTopicAnalysis.confidence === "number" ? Math.min(100, Math.max(0, rawTopicAnalysis.confidence)) : 80
+          };
+          console.log(`🏷️  Topic analysis saved: "${contentItem.topicAnalysis.primaryTopic}" | Secondary: ${filteredSecondary.join(", ")}`);
+        }
+      }
+
       // Mark content item completed
       contentItem.processedStatus = "completed";
       await contentItem.save();
