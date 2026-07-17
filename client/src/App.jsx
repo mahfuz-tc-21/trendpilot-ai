@@ -5,6 +5,7 @@ import AuthLayout from "./layouts/AuthLayout.jsx";
 import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
+import Landing from "./pages/Landing.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Sources from "./pages/Sources.jsx";
 import Trends from "./pages/Trends.jsx";
@@ -53,11 +54,14 @@ export default function App() {
           <Route path="/register" element={<Register />} />
         </Route>
 
+        {/* Public Landing Page Route */}
+        <Route path="/" element={<Landing />} />
+
         {/* Protected Core Application Routes */}
         <Route element={<ProtectedRoute />}>
           <Route element={<DashboardLayout />}>
             {/* Overview Dashboard View */}
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/trends" element={<Trends />} />
             <Route path="/library" element={<ContentLibrary />} />
             <Route path="/recommendations" element={<Recommendations />} />

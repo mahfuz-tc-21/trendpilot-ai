@@ -39,7 +39,7 @@ export default function DashboardLayout() {
           {/* Navigation Links */}
           <nav className="mt-8 flex-1 px-4 space-y-1">
             <NavLink
-              to="/"
+              to="/dashboard"
               className={({ isActive }) =>
                 `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${isActive
                   ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/10"
@@ -291,7 +291,7 @@ export default function DashboardLayout() {
 
         <nav className="space-y-1">
           <NavLink
-            to="/"
+            to="/dashboard"
             onClick={() => setIsMobileMenuOpen(false)}
             className={({ isActive }) =>
               `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${isActive

@@ -28,7 +28,7 @@ export default function Login() {
     try {
       const success = await login(data.email, data.password);
       if (success) {
-        navigate("/");
+        navigate("/dashboard");
       }
     } catch {
       // Error handled by store
