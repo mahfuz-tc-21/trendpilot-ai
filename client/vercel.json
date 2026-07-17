@@ -1,12 +1,11 @@
 {
-  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "https://ai-content-trend-recommendation-jea.vercel.app/api/$1"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api|assets|favicon).*)",
       "destination": "/index.html"
     }
   ]
