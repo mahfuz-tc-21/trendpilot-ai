@@ -41,12 +41,20 @@ class DashboardController {
   }
 
   /**
-   * Fetch comprehensive historical SaaS analytics.
+   * Fetch comprehensive historical SaaS analytics with filtering options.
    */
   async getAnalytics(req, res, next) {
     try {
       const userId = req.user.userId;
-      const report = await dashboardService.getAnalytics(userId);
+      const filters = {
+        startDate: req.query.startDate,
+        endDate: req.query.endDate,
+        platform: req.query.platform,
+        source: req.query.source,
+        contentType: req.query.contentType,
+        competitor: req.query.competitor
+      };
+      const report = await dashboardService.getAnalytics(userId, filters);
 
       return res.status(200).json({
         success: true,

@@ -1,5 +1,7 @@
 import cron from "node-cron";
 import Source from "../models/Source.js";
+import ContentItem from "../models/ContentItem.js";
+import CompetitorPost from "../models/CompetitorPost.js";
 import crawlerService from "../services/crawlerService.js";
 import youtubeService from "../services/youtubeService.js";
 import facebookService from "../services/facebookService.js";
@@ -64,6 +66,28 @@ export const initScheduler = () => {
       }
     } catch (err) {
       console.error(`⏰ Global scheduler check error: ${err.message}`);
+    }
+  });
+
+  // Cleanup cron: Run every midnight (0 0 * * *) to purge soft-deleted items older than 10 days
+  cron.schedule("0 0 * * *", async () => {
+    console.log("⏰ Background cron check started: Purging trashed items older than 10 days...");
+    try {
+      const tenDaysAgo = new Date();
+      tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+
+      const deletedItems = await ContentItem.deleteMany({
+        isDeleted: true,
+        deletedAt: { $lte: tenDaysAgo }
+      });
+      const deletedCompetitor = await CompetitorPost.deleteMany({
+        isDeleted: true,
+        deletedAt: { $lte: tenDaysAgo }
+      });
+
+      console.log(`⏰ Purged ${deletedItems.deletedCount} trashed ContentItems and ${deletedCompetitor.deletedCount} trashed CompetitorPosts.`);
+    } catch (err) {
+      console.error(`⏰ Auto delete cleanup error: ${err.message}`);
     }
   });
 };

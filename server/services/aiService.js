@@ -1,5 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
+import mongoose from "mongoose";
 import { GoogleGenAI } from "@google/genai";
 import ContentItem from "../models/ContentItem.js";
 import Summary from "../models/Summary.js";
@@ -161,8 +162,6 @@ class AIService {
   async processContentItem(contentItemId) {
     console.log(`🧠 AI Processing triggered for content: ${contentItemId}`);
 
-    console.log(`🧠 AI Processing triggered for content: ${contentItemId}`);
-
     const contentItem = await ContentItem.findById(contentItemId).populate("sourceId");
     if (!contentItem) {
       throw new Error(`ContentItem not found: ${contentItemId}`);
@@ -177,6 +176,58 @@ class AIService {
     await contentItem.save();
 
     try {
+      // Build dynamic ignore list for LLM negative constraint
+      const SourceModel = mongoose.model("Source");
+      const CompetitorModel = mongoose.model("Competitor");
+      const dbSources = await SourceModel.find({ userId }).select("name type url");
+      const dbCompetitors = await CompetitorModel.find({ userId }).select("brandName name");
+
+      const ignoreTerms = new Set([
+        "ostad", "programming hero", "fireship", "freecodecamp", "traversy media", "ph", "aaa", "unknown",
+        "facebook", "youtube", "blog", "website", "competitor", "author", "author name"
+      ]);
+
+      for (const s of dbSources) {
+        if (s.name) {
+          ignoreTerms.add(s.name.toLowerCase().trim());
+          const parts = s.name.toLowerCase().split(/\s+/);
+          parts.forEach(p => { if (p.length > 2) ignoreTerms.add(p); });
+        }
+        if (s.url) {
+          try {
+            const domain = new URL(s.url).hostname.replace("www.", "");
+            ignoreTerms.add(domain.toLowerCase().trim());
+            const domainPart = domain.split(".")[0];
+            if (domainPart && domainPart.length > 2) {
+              ignoreTerms.add(domainPart.toLowerCase().trim());
+            }
+          } catch (e) {}
+        }
+      }
+
+      for (const c of dbCompetitors) {
+        if (c.brandName) {
+          ignoreTerms.add(c.brandName.toLowerCase().trim());
+          const parts = c.brandName.toLowerCase().split(/\s+/);
+          parts.forEach(p => { if (p.length > 2) ignoreTerms.add(p); });
+        }
+        if (c.name) {
+          ignoreTerms.add(c.name.toLowerCase().trim());
+          const parts = c.name.toLowerCase().split(/\s+/);
+          parts.forEach(p => { if (p.length > 2) ignoreTerms.add(p); });
+        }
+      }
+
+      const ignoreListString = Array.from(ignoreTerms).join(", ");
+      const customExtractionInstruction = `
+CRITICAL INSTRUCTION ON KEYWORDS AND TOPICS EXTRACTION:
+- You MUST extract only industry-relevant technical topics, frameworks, tools, programming languages, databases, or career/technical concepts (e.g. Next.js, React, Prompt Engineering, Docker, Career Growth, LangChain, RAG).
+- You MUST NEVER extract source names, publisher names, brand names, page names, or website domains as keywords or topics.
+- Specifically, do not extract any of the following names or variations of them: [${ignoreListString}].
+- If a term appears in the text mainly as a publisher or source name (e.g., "Ostad published a React tutorial"), extract "React" as a topic, but do NOT extract "Ostad".
+- Do not extract terms that only represent the author or creator name.
+`;
+
       // 1. Clean Text
       const cleaned = this.cleanText(contentItem.rawText || contentItem.description);
 
@@ -198,7 +249,7 @@ class AIService {
           .replace("{{AUTHOR}}", contentItem.author || "Unknown")
           .replace("{{TYPE}}", contentItem.sourceId?.type || "website")
           .replace("{{CATEGORY}}", contentItem.sourceId?.category || "general")
-          .replace("{{CONTENT}}", cleaned.substring(0, 5000)) + getLanguageInstruction(language);
+          .replace("{{CONTENT}}", cleaned.substring(0, 5000)) + customExtractionInstruction + getLanguageInstruction(language);
 
         finalAnalysisJson = await this.callGemini(prompt, 3, 3000, userId);
       } else {
@@ -215,7 +266,7 @@ class AIService {
         for (let i = 0; i < chunks.length; i++) {
           const chunkPrompt = chunkPromptTpl
             .replace("{{TITLE}}", contentItem.title)
-            .replace("{{CONTENT}}", chunks[i]) + getLanguageInstruction(language);
+            .replace("{{CONTENT}}", chunks[i]) + customExtractionInstruction + getLanguageInstruction(language);
 
           try {
             const chunkResult = await this.callGemini(chunkPrompt, 3, 3000, userId);
@@ -240,13 +291,39 @@ class AIService {
           .replace("{{AUTHOR}}", contentItem.author || "Unknown")
           .replace("{{TYPE}}", contentItem.sourceId?.type || "website")
           .replace("{{CATEGORY}}", contentItem.sourceId?.category || "general")
-          .replace("{{CONTENT}}", consolidatedText) + getLanguageInstruction(language);
+          .replace("{{CONTENT}}", consolidatedText) + customExtractionInstruction + getLanguageInstruction(language);
 
         finalAnalysisJson = await this.callGemini(finalPrompt, 3, 3000, userId);
       }
 
       // 4. Validate AI JSON fields & fallback defaults
       const { summaryData, recommendationData } = this.validateAndNormalizeJson(finalAnalysisJson);
+
+      // Post-process validation filter as a secondary safety guard
+      if (summaryData.topics) {
+        summaryData.topics = summaryData.topics.filter(topic => {
+          const tLower = topic.toLowerCase().trim();
+          if (ignoreTerms.has(tLower)) return false;
+          for (const term of ignoreTerms) {
+            if (tLower === term || (term.length > 3 && tLower.includes(term))) {
+              return false;
+            }
+          }
+          return true;
+        });
+      }
+      if (summaryData.keywords) {
+        summaryData.keywords = summaryData.keywords.filter(kw => {
+          const kLower = kw.toLowerCase().trim();
+          if (ignoreTerms.has(kLower)) return false;
+          for (const term of ignoreTerms) {
+            if (kLower === term || (term.length > 3 && kLower.includes(term))) {
+              return false;
+            }
+          }
+          return true;
+        });
+      }
 
       // 5. Store / Save Summary result
       let summaryDoc = await Summary.findOne({ contentId: contentItemId });

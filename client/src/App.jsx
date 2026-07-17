@@ -16,6 +16,7 @@ import YTStudio from "./pages/YTStudio.jsx";
 import Analytics from "./pages/Analytics.jsx";
 import Settings from "./pages/Settings.jsx";
 import Competitors from "./pages/Competitors.jsx";
+import Trash from "./pages/Trash.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 /**
@@ -67,6 +68,7 @@ export default function App() {
             <Route path="/competitors" element={<Competitors />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/trash" element={<Trash />} />
           </Route>
         </Route>
       </Routes>

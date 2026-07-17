@@ -232,6 +232,18 @@ export default function CompetitorsPage() {
     }
   };
 
+  const handleTrashPost = async (postId) => {
+    if (!window.confirm("This content will be hidden from all analytics, trends, AI recommendations, and searches. It will remain in Trash for 10 days before being permanently deleted.")) {
+      return;
+    }
+    try {
+      await api.put("/api/trash/move", { ids: [postId], type: "competitor" });
+      queryClient.invalidateQueries({ queryKey: ["competitorPosts"] });
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to move post to trash");
+    }
+  };
+
   const handleToggleSelectComp = (id) => {
     setSelectedCompetitors((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
@@ -456,13 +468,22 @@ ${beatenOutput.contentAssets?.visualIdea}
                           <span>💬 {post.engagement?.comments} comments</span>
                           <span>🔗 {post.engagement?.shares} shares</span>
                         </div>
-                        <button
-                          onClick={() => handleBeatClick(post)}
-                          className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold shadow-md shadow-indigo-500/10 transition-colors flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <Sparkles className="h-3 w-3" />
-                          Beat Post
-                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleTrashPost(post._id)}
+                            className="p-1.5 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 border border-zinc-800/60 hover:border-rose-500/20 transition-all cursor-pointer"
+                            title="Move to Trash"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleBeatClick(post)}
+                            className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold shadow-md shadow-indigo-500/10 transition-colors flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Sparkles className="h-3 w-3" />
+                            Beat Post
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}

@@ -120,7 +120,7 @@ class CompetitorController {
     try {
       const userId = req.user.userId;
 
-      const posts = await CompetitorPost.find({ userId })
+      const posts = await CompetitorPost.find({ userId, isDeleted: { $ne: true } })
         .populate("competitorId", "brandName logo pageUrl")
         .sort({ publishedAt: -1 });
 

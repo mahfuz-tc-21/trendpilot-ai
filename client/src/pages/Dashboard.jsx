@@ -41,6 +41,22 @@ const CustomPieTooltip = ({ active, payload }) => {
   return null;
 };
 
+// Custom Tooltip for Trending Topics Bar Chart
+const TrendingTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    const item = payload[0].payload;
+    return (
+      <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3 shadow-2xl text-[10px] text-left space-y-1">
+        <p className="font-bold text-zinc-150">{item.topic}</p>
+        <p className="text-indigo-400 font-semibold">Mentions: <span className="text-zinc-200">{item.mentions}</span></p>
+        <p className="text-emerald-450 font-semibold">Weekly Growth: <span className="text-zinc-200">{item.weeklyGrowth}</span></p>
+        <p className="text-amber-400 font-semibold">Trend Score: <span className="text-zinc-200">{item.trendScore}</span></p>
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function Dashboard() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -215,27 +231,35 @@ export default function Dashboard() {
             {db.topTrends?.length === 0 ? (
               <p className="text-xs text-zinc-500 italic py-6">No trends calculated yet.</p>
             ) : (
-              <div className="space-y-3">
-                {db.topTrends.map((t) => (
-                  <div
-                    key={t.topic}
-                    onClick={() => navigate(`/trends?topic=${encodeURIComponent(t.topic)}`)}
-                    className="p-4 rounded-2xl border border-zinc-850 bg-zinc-950/40 hover:border-indigo-500/50 hover:bg-zinc-900/20 transition-all flex items-center justify-between cursor-pointer"
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={db.topTrends}
+                    margin={{ top: 10, right: 10, left: -25, bottom: 5 }}
                   >
-                    <div>
-                      <p className="text-sm font-bold text-zinc-200">{t.topic}</p>
-                      <div className="flex gap-3 text-[10px] text-zinc-500 mt-1">
-                        <span>{t.mentions} Mentions</span>
-                        <span>•</span>
-                        <span>{t.sourcesCount} Contributing Sources</span>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-xs font-bold text-emerald-450">{t.weeklyGrowth}</span>
-                      <div className="text-[10px] text-zinc-500 mt-0.5">Score: <strong className="text-indigo-400">{t.trendScore}</strong></div>
-                    </div>
-                  </div>
-                ))}
+                    <XAxis
+                      dataKey="topic"
+                      tick={{ fill: "#71717a", fontSize: 10 }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tick={{ fill: "#71717a", fontSize: 10 }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <Tooltip content={<TrendingTooltip />} cursor={{ fill: "rgba(39, 39, 42, 0.3)" }} />
+                    <Bar dataKey="mentions" radius={[6, 6, 0, 0]} className="cursor-pointer">
+                      {db.topTrends.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={index % 2 === 0 ? "#4f46e5" : "#6366f1"}
+                          onClick={() => navigate(`/trends?topic=${encodeURIComponent(entry.topic)}`)}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             )}
           </div>

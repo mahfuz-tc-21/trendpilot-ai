@@ -155,7 +155,7 @@ class CompetitorService {
       throw error;
     }
 
-    const posts = await CompetitorPost.find({ competitorId: { $in: competitorIds } })
+    const posts = await CompetitorPost.find({ competitorId: { $in: competitorIds }, isDeleted: { $ne: true } })
       .populate("competitorId", "brandName pageUrl");
 
     // Retrieve Brand Profile to context comparative suggestions
@@ -266,7 +266,7 @@ ${getLanguageInstruction(language)}`;
     }
 
     const competitors = await Competitor.find({ userId });
-    const posts = await CompetitorPost.find({ competitorId: { $in: competitors.map((c) => c._id) } })
+    const posts = await CompetitorPost.find({ competitorId: { $in: competitors.map((c) => c._id) }, isDeleted: { $ne: true } })
       .populate("competitorId", "brandName");
 
     const postsSummary = posts.map((p) => ({

@@ -12,8 +12,8 @@ const dashboardService = {
   /**
    * Fetch comprehensive historical SaaS intelligence analytics metrics.
    */
-  getAnalytics: async () => {
-    const response = await api.get("/api/dashboard/analytics");
+  getAnalytics: async (filters = {}) => {
+    const response = await api.get("/api/dashboard/analytics", { params: filters });
     return response.data.data;
   },
 

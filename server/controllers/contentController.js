@@ -22,7 +22,7 @@ class ContentController {
       const status = req.query.status || "";
 
       // Build search query filters
-      const query = { userId };
+      const query = { userId, isDeleted: { $ne: true } };
       if (search) {
         query.$or = [
           { title: { $regex: search, $options: "i" } },
