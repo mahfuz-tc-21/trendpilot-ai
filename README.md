@@ -19,9 +19,9 @@ An AI-powered, multi-tenant Content Intelligence and Social Growth Platform desi
 5. [Folder Structure](#5-folder-structure)
 6. [Database Schema](#6-database-schema)
 7. [API Documentation](#7-api-documentation)
-8. [AI Modules](#8-ai-modules)
+8. [AI Modules & Refinement](#8-ai-modules--refinement)
 9. [Crawlers](#9-crawlers)
-10. [Scheduler](#11-scheduler)
+10. [Scheduler](#10-scheduler)
 11. [Installation](#11-installation)
 12. [Environment Variables](#12-environment-variables)
 13. [Deployment](#13-deployment)
@@ -46,6 +46,7 @@ Modern creators and marketing teams spend hours manually scouring blogs, RSS fee
 - Perform detailed **Content Gap Analyses** identifying what competitors missed.
 - Draft tailored social media posts, email newsletters, scripts, and blog articles.
 - Generate high-performance **Beat Competitor** battle blueprints to improve engagement.
+- Store all generated assets in a **Persistent AI Content Workspace** supporting collaborative refinement, auto-saving, version histories, and chat history preservation.
 
 ---
 
@@ -61,7 +62,12 @@ Modern creators and marketing teams spend hours manually scouring blogs, RSS fee
 | **Trend Detail Panel** | Interactive dashboard showcasing growth reasons, opportunity scores, related keywords, and formats. |
 | **Opportunity & Gap Analysis** | AI assessment detailing competitor strengths, explanation holes, and questions users are asking. |
 | **Beat Competitor Strategist** | Direct competitive analysis comparison to draft superior hooks, thumbnails, and CTAs. |
-| **AI Studio Outputs** | Creative editor to translate, rewrite, export, and save structured drafts to the MongoDB database. |
+| **Persistent Content Workspace** | ChatGPT-style document workspace where generations are saved automatically, and refinements edit the existing document instead of spawning random content. |
+| **Auto-Save with Indication** | Keeps your content safe in real-time with a debounced 2-second auto-save and displays "Last Saved" timestamp badges. |
+| **Version History Subsystem** | Compiles clean version checkpoints on every refinement (v1, v2, v3, etc.) allowing inline preview, restoration, and revision comparisons. |
+| **Refinement Chat Persistence** | Stores the entire iterative conversation history linked to each document so you can resume editing exactly where you left off. |
+| **AI Content History Page** | Search, filter, and paginated overview of all past workspace documents, supporting duplicates, soft-deletes (Trash Bin), favorites, and formatting exports. |
+| **Universal Document Exporting** | Export your assets as Markdown, PDF, plain text (TXT), or copy instantly to your clipboard. |
 | **Generate Everything CTA** | Instantly generates a package of 19 content assets (posts, newsletters, scripts, and SEO blogs). |
 | **Background Cron Scheduler** | Periodic scanning runner checking active sources with exponential backoff on failures. |
 
@@ -93,7 +99,7 @@ graph TD
 ```
 
 ### Subsystems
-- **Frontend SPA**: React 19 app with tailwindcss styling, TanStack React Query cache management, and Recharts visualization.
+- **Frontend SPA**: React 19 app with TailwindCSS styling, TanStack React Query cache management, and Recharts visualization.
 - **Backend API Gateway**: Express.js server providing routing, schema validation, rate-limiting, and error fallback handlers.
 - **Database**: MongoDB instance organizing user accounts, crawling schedules, content summaries, and generated studio outputs.
 - **AI Core**: Gemini 2.5 Flash orchestrator tailoring summaries, post prompts, gap analyses, and multilingual translation structures.
@@ -116,21 +122,21 @@ graph TD
 TrendPilot-AI/
 ├── client/                     # Frontend Application
 │   ├── src/
-│   │   ├── components/         # Reusable UI Elements (Shadcn-like)
+│   │   ├── components/         # Reusable UI Elements (Shadcn-like, Modals)
 │   │   ├── context/            # Global React Context providers
 │   │   ├── hooks/              # Custom hook abstractions
 │   │   ├── layouts/            # Dashboard & Auth page layouts
-│   │   ├── pages/              # SPA Pages (Trends, Library, AI Studio, etc.)
+│   │   ├── pages/              # SPA Pages (Trends, Library, AI Studio, History, etc.)
 │   │   ├── services/           # Axios HTTP endpoints integrations
 │   │   └── utils/              # Client-side formatting helpers
 │   ├── public/                 # Static assets (Favicon, Logo banners)
 │   └── index.html              # Frontend DOM entrypoint
 ├── server/                     # Backend API Server
-│   ├── controllers/            # Request handlers (AI Studio, Content, Trends)
+│   ├── controllers/            # Request handlers (AI Studio, Workspace, Content, Trends)
 │   ├── middleware/             # Express handlers (JWT validation, errors)
 │   ├── models/                 # Mongoose Database Schemas
 │   ├── routes/                 # REST Route specifications
-│   ├── services/               # Gemini AI & playwrite scraping services
+│   ├── services/               # Gemini AI & Playwright scraping services
 │   ├── tests/                  # Integration and verification test scripts
 │   └── server.js               # Main server listener start script
 ```
@@ -148,8 +154,9 @@ All collections enforce database indices mapping `userId` and sorting parameters
 5. **Recommendation**: Targeted social platform prompts, hooks, and opportunity growth scores.
 6. **Competitor**: Monitored competitor details (brand name, page URL, platform, category).
 7. **CompetitorPost**: Crawled social posts, captions, publishing dates, media URLs, and reactions.
-8. **StudioOutput**: AI Studio outputs saved by users (format types, instructions, content blocks).
-9. **Job**: Scheduler logs (crawler queues, completion status, errors).
+8. **WorkspaceDocument**: AI Content Workspace documents, version histories, chat conversation entries, tags, favorites, and soft delete fields.
+9. **StudioOutput**: AI Studio outputs saved by users (legacy format types, instructions, content blocks).
+10. **Job**: Scheduler logs (crawler queues, completion status, errors).
 
 ---
 
@@ -195,17 +202,31 @@ All collections enforce database indices mapping `userId` and sorting parameters
 | `GET` | `/api/dashboard/trends/detail` | Yes | Returns detailed gap analysis and timelines. |
 | `POST` | `/api/dashboard/trends/generate-all` | Yes | Compiles the full 19-asset package for a trend. |
 | `POST` | `/api/dashboard/trends/beat-competitor` | Yes | Generates strategy comparisons to defeat competitors. |
-| `POST` | `/api/ai-studio/generate` | Yes | Formats custom posts/scripts in the AI Studio editor. |
+| `POST` | `/api/studio/generate` | Yes | Formats custom posts/scripts in the AI Studio editor. |
+| `POST` | `/api/studio/refine` | Yes | Refines the active editor content based on user chat prompts. |
+
+### Workspace & Document History Routes
+| Method | URL | Auth | Description |
+| :--- | :--- | :---: | :--- |
+| `GET` | `/api/workspace` | Yes | Lists user's workspace documents (with search, filter, sorting, pagination). |
+| `GET` | `/api/workspace/:id` | Yes | Retrieves full details of a document (including versions and chat history). |
+| `PUT` | `/api/workspace/:id` | Yes | Saves document modifications (supports auto-save). |
+| `PUT` | `/api/workspace/:id/favorite` | Yes | Toggles the favorite flag on a document. |
+| `POST` | `/api/workspace/:id/duplicate` | Yes | Deep copies a document into a new Workspace entry. |
+| `PUT` | `/api/workspace/:id/restore-version` | Yes | Restores the editor contents to a specific version number. |
+| `DELETE` | `/api/workspace/:id` | Yes | Soft-deletes a document and moves it to the Trash bin. |
+| `PUT` | `/api/workspace/:id/undelete` | Yes | Recovers a soft-deleted document back to the active workspace. |
 
 ---
 
-## 8. AI Modules
+## 8. AI Modules & Refinement
 
 1. **AI Summary**: Parses long raw HTML or video logs, outputting key bullet summaries and metadata keywords.
 2. **Trend Analysis**: Groups topics from summaries to compute growth charts, opportunity points, and recommended audiences.
 3. **Content Gap Analysis**: Evaluates competitor posts against library content to determine unexplained topics and questions users are asking.
 4. **Beat Competitor**: Generates superior post copies (better hooks, thumbnails, CTAs) compared to selected competitors.
 5. **Generate Everything**: Large prompt generator compiling script copy, email sequences, carousels, threads, and SEO blogs.
+6. **Refinement Editor**: A single-shot context-aware editor prompt instructing the AI model to *only* edit the existing text layout based on the user request, guaranteeing that the context, topic, and formatting structure is never replaced by unrelated drafts.
 
 ---
 
@@ -281,7 +302,7 @@ All collections enforce database indices mapping `userId` and sorting parameters
    ```
 
 3. **Configure Environment Variables**:
-   Create a `.env` file inside the `server/` directory based on the `.example.env` variables description.
+   Create a `.env` file inside the `server/` directory based on the `.env.example` variables description.
 
 4. **Install Playwright Browsers**:
    ```bash
