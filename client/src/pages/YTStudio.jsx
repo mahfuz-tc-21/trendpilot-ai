@@ -7,6 +7,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../services/authStore.js";
 import api from "../services/api.js";
+import ApiLimitModal from "../components/ApiLimitModal.jsx";
 
 export default function YTStudio() {
   const navigate = useNavigate();
@@ -24,6 +25,10 @@ export default function YTStudio() {
   const [subtitleText, setSubtitleText] = useState("");
   const [audioFile, setAudioFile] = useState(null);
   const [transcribing, setTranscribing] = useState(false);
+
+  // Custom premium error states
+  const [showLimitModal, setShowLimitModal] = useState(false);
+  const [apiErrorMessage, setApiErrorMessage] = useState("");
 
   // Modular constraints
   const [titleConstraints, setTitleConstraints] = useState("");
@@ -107,6 +112,11 @@ export default function YTStudio() {
     },
     onSuccess: (data) => {
       setSystemOutput(data.content);
+    },
+    onError: (err) => {
+      const errMsg = err.response?.data?.message || err.message || "Content generation failed";
+      setApiErrorMessage(errMsg);
+      setShowLimitModal(true);
     }
   });
 
@@ -434,6 +444,13 @@ export default function YTStudio() {
           className="w-full h-80 p-4 bg-zinc-950/60 border border-zinc-900 rounded-xl text-zinc-300 text-xs font-mono leading-relaxed focus:outline-none focus:border-zinc-800"
         />
       </div>
+
+      {/* API Limit Modal Alert */}
+      <ApiLimitModal
+        isOpen={showLimitModal}
+        onClose={() => setShowLimitModal(false)}
+        errorMessage={apiErrorMessage}
+      />
     </div>
   );
 }

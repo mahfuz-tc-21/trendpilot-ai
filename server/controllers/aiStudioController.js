@@ -2,8 +2,33 @@ import ContentItem from "../models/ContentItem.js";
 import Summary from "../models/Summary.js";
 import User from "../models/User.js";
 import StudioOutput from "../models/StudioOutput.js";
+import WorkspaceDocument from "../models/WorkspaceDocument.js";
 import { getAIClient, getLanguageInstruction } from "../services/aiService.js";
 import liveWorkspaceService from "../services/liveWorkspaceService.js";
+
+/**
+ * Derives a clean title from generated content or topic.
+ */
+function deriveTitle(content, topic, format) {
+  // Try to extract first heading from markdown
+  const headingMatch = content.match(/^#+\s+(.+)$/m);
+  if (headingMatch && headingMatch[1]) {
+    return headingMatch[1].substring(0, 120).trim();
+  }
+
+  // Try first meaningful line
+  const firstLine = content.split("\n").find(line => line.trim().length > 5);
+  if (firstLine) {
+    return firstLine.replace(/^[#*\->\s]+/, "").substring(0, 120).trim();
+  }
+
+  // Fallback to topic + format
+  if (topic) {
+    return `${format} — ${topic.substring(0, 100)}`;
+  }
+
+  return `${format} Document`;
+}
 
 class AIStudioController {
   /**
@@ -30,6 +55,7 @@ class AIStudioController {
 
       const userId = req.user.userId;
       let contentInfoText = "";
+      let derivedTopic = "";
 
       // Handle 7 different input source types
       if (inputType === "crawled_content") {
@@ -46,6 +72,7 @@ class AIStudioController {
         }
 
         const summary = await Summary.findOne({ contentId, userId });
+        derivedTopic = contentItem.title;
         contentInfoText = `
 Source Title: ${contentItem.title}
 Source Description: ${contentItem.description}
@@ -61,6 +88,7 @@ Keywords: ${summary?.keywords?.join(", ") || ""}
           error.status = 400;
           throw error;
         }
+        derivedTopic = customTopic.topic;
         contentInfoText = `
 INPUT TYPE: Custom Topic
 Topic Title: ${customTopic.topic}
@@ -77,6 +105,7 @@ Additional Instructions: ${customTopic.instructions || "None"}
           error.status = 400;
           throw error;
         }
+        derivedTopic = pastedContent.substring(0, 80).trim();
         contentInfoText = `
 INPUT TYPE: Pasted Raw Content Context
 Pasted Text Context:
@@ -91,6 +120,7 @@ ${pastedContent}
           throw error;
         }
         const webData = await liveWorkspaceService.crawlWebsite(url);
+        derivedTopic = webData.title || url;
         contentInfoText = `
 INPUT TYPE: Ingested Website URL
 Page Title: ${webData.title}
@@ -108,6 +138,7 @@ ${webData.content}
           throw error;
         }
         const fbData = await liveWorkspaceService.crawlFacebookPage(url, facebookSelection);
+        derivedTopic = `Facebook Content from ${url}`;
         contentInfoText = `
 INPUT TYPE: Ingested Facebook Page Feed
 Facebook Page: ${url}
@@ -124,6 +155,7 @@ ${fbData.content}
           throw error;
         }
         const ytData = await liveWorkspaceService.crawlYouTubeVideo(url);
+        derivedTopic = ytData.title || url;
         contentInfoText = `
 INPUT TYPE: Ingested YouTube Video
 Video Title: ${ytData.title}
@@ -141,6 +173,7 @@ ${ytData.content}
           throw error;
         }
         const blogData = await liveWorkspaceService.crawlBlog(url);
+        derivedTopic = blogData.title || url;
         contentInfoText = `
 INPUT TYPE: Ingested Blog Article
 Blog Title: ${blogData.title}
@@ -242,7 +275,7 @@ Respond with ONLY the generated markdown content. Do not include markdown code b
         .replace(/```$/, "")
         .trim();
 
-      // Persist output
+      // Persist to legacy StudioOutput for backward compatibility
       const studioOutput = new StudioOutput({
         userId,
         contentId: contentId || null,
@@ -252,11 +285,49 @@ Respond with ONLY the generated markdown content. Do not include markdown code b
       });
       await studioOutput.save();
 
+      // Derive a clean title from the generated content
+      const autoTitle = deriveTitle(generatedText, derivedTopic, format);
+
+      // Create new WorkspaceDocument with version 1
+      const workspaceDoc = new WorkspaceDocument({
+        userId,
+        title: autoTitle,
+        topic: derivedTopic,
+        platform: format,
+        sourceType: inputType,
+        sourceId: contentId || null,
+        generationPrompt: finalPrompt.substring(0, 5000),
+        currentContent: generatedText,
+        currentVersion: 1,
+        versions: [
+          {
+            versionNumber: 1,
+            content: generatedText,
+            instruction: "Initial generation",
+            createdAt: new Date()
+          }
+        ],
+        chatHistory: [
+          {
+            role: "assistant",
+            message: `Here is your generated ${format} document. Feel free to refine it using the chat box below.`,
+            timestamp: new Date()
+          }
+        ],
+        favorite: false,
+        tags: [],
+        status: "draft"
+      });
+      await workspaceDoc.save();
+
+      console.log(`📄 Workspace document created: ${workspaceDoc._id}`);
+
       return res.status(200).json({
         success: true,
         message: `${format} content generated successfully`,
         data: {
-          content: generatedText
+          content: generatedText,
+          documentId: workspaceDoc._id
         }
       });
     } catch (error) {
@@ -265,11 +336,13 @@ Respond with ONLY the generated markdown content. Do not include markdown code b
   }
 
   /**
-   * Interactively refines generated drafts using natural chat instructions with history support.
+   * Interactively refines generated drafts using natural chat instructions.
+   * BUG FIX: Always sends the current editor content to the AI so it edits
+   * the existing document instead of generating unrelated content.
    */
   async refinePost(req, res, next) {
     try {
-      const { currentContent, chatPrompt, format, history = [] } = req.body;
+      const { currentContent, chatPrompt, format, documentId } = req.body;
 
       if (!currentContent) {
         const error = new Error("Current content draft is required to perform refinement");
@@ -282,37 +355,41 @@ Respond with ONLY the generated markdown content. Do not include markdown code b
         throw error;
       }
 
-      const systemInstruction = `You are an elite copy editor and content strategist. 
-Your task is to iteratively refine the current draft copy based on the user's chat feedback/instructions.
-Always modify and edit the previous draft. Preserve the target format (${format || "general"}) and main subject unless requested otherwise.
-Always respond with ONLY the updated draft content. Do not include markdown block ticks or chat introductions.`;
+      const userId = req.user.userId;
 
-      const formattedHistory = history.map(h => ({
-        role: h.role === "assistant" || h.role === "model" ? "model" : "user",
-        parts: [{ text: h.text }]
-      }));
+      // FIXED REFINEMENT PROMPT: Explicitly instructs the AI to edit the existing document
+      const refinementPrompt = `You are an expert content editor and writing assistant.
 
-      // Add a fallback current content context if history is empty
-      if (formattedHistory.length === 0) {
-        formattedHistory.push(
-          { role: "user", parts: [{ text: `Here is the current draft: \n"""\n${currentContent}\n"""` }] },
-          { role: "model", parts: [{ text: "Got it. I will refine this draft copy based on your upcoming instructions." }] }
-        );
-      }
+CRITICAL RULES:
+1. You MUST edit the EXISTING document below.
+2. You must NEVER generate a completely new document on a different topic.
+3. You must NEVER ignore the existing document content.
+4. You must ONLY modify the document according to the user's specific instruction.
+5. Preserve the overall structure, topic, and context of the original document.
+6. Apply the requested changes precisely and return the full updated document.
 
-      console.log("🤖 AI Studio refining draft via multi-turn chat...");
-      const ai = await getAIClient(req.user?.userId);
-      const chat = ai.chats.create({
+Current document:
+"""
+${currentContent}
+"""
+
+User request:
+"""
+${chatPrompt}
+"""
+
+Target format: ${format || "general"}
+
+Return ONLY the updated document content. Do not include markdown code block ticks, explanations, or any conversational text. Return only the raw updated document.`;
+
+      console.log("🤖 AI Studio refining draft with fixed context-aware prompt...");
+      const ai = await getAIClient(userId);
+      const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
-        history: formattedHistory,
+        contents: refinementPrompt,
         config: {
-          systemInstruction,
-          temperature: 0.6
+          temperature: 0.4
         }
-      });
-
-      const response = await chat.sendMessage({
-        message: chatPrompt
       });
 
       let refinedText = response.text;
@@ -326,15 +403,61 @@ Always respond with ONLY the updated draft content. Do not include markdown bloc
         .replace(/```$/, "")
         .trim();
 
-      // Persist refined output
+      // Persist refined output to legacy StudioOutput
       const studioOutput = new StudioOutput({
-        userId: req.user.userId,
+        userId,
         contentId: null,
         format: format || "general",
         instructions: chatPrompt,
         content: refinedText
       });
       await studioOutput.save();
+
+      // Update WorkspaceDocument if documentId is provided
+      if (documentId) {
+        try {
+          const workspaceDoc = await WorkspaceDocument.findOne({
+            _id: documentId,
+            userId,
+            isDeleted: false
+          });
+
+          if (workspaceDoc) {
+            const newVersionNumber = workspaceDoc.currentVersion + 1;
+
+            // Push new version
+            workspaceDoc.versions.push({
+              versionNumber: newVersionNumber,
+              content: refinedText,
+              instruction: chatPrompt,
+              createdAt: new Date()
+            });
+
+            // Update current content
+            workspaceDoc.currentContent = refinedText;
+            workspaceDoc.currentVersion = newVersionNumber;
+
+            // Append chat history
+            workspaceDoc.chatHistory.push(
+              {
+                role: "user",
+                message: chatPrompt,
+                timestamp: new Date()
+              },
+              {
+                role: "assistant",
+                message: "I have updated the document in the editor with your requested edits.",
+                timestamp: new Date()
+              }
+            );
+
+            await workspaceDoc.save();
+            console.log(`📄 Workspace document updated to version ${newVersionNumber}: ${documentId}`);
+          }
+        } catch (docErr) {
+          console.warn(`⚠️ Failed to update workspace document: ${docErr.message}`);
+        }
+      }
 
       return res.status(200).json({
         success: true,

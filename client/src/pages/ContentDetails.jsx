@@ -7,6 +7,7 @@ import {
   Check, ArrowRight, ShieldAlert, Cpu, Heart 
 } from "lucide-react";
 import api from "../services/api.js";
+import ApiLimitModal from "../components/ApiLimitModal.jsx";
 
 export default function ContentDetails() {
   const { id } = useParams();
@@ -20,6 +21,10 @@ export default function ContentDetails() {
   const [chatPrompt, setChatPrompt] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
   const [copied, setCopied] = useState(false);
+
+  // Custom premium error states
+  const [showLimitModal, setShowLimitModal] = useState(false);
+  const [apiErrorMessage, setApiErrorMessage] = useState("");
 
   // Fetch content details, analysis and recommendations combined
   const { data: detailData, isLoading, isError, refetch } = useQuery({
@@ -43,6 +48,11 @@ export default function ContentDetails() {
     onSuccess: (data) => {
       setGeneratedDraft(data.content);
       setChatHistory([{ role: "assistant", text: data.content }]);
+    },
+    onError: (err) => {
+      const errMsg = err.response?.data?.message || err.message || "Content generation failed";
+      setApiErrorMessage(errMsg);
+      setShowLimitModal(true);
     }
   });
 
@@ -64,6 +74,11 @@ export default function ContentDetails() {
         { role: "assistant", text: data.content }
       ]);
       setChatPrompt("");
+    },
+    onError: (err) => {
+      const errMsg = err.response?.data?.message || err.message || "Refinement failed";
+      setApiErrorMessage(errMsg);
+      setShowLimitModal(true);
     }
   });
 
@@ -600,6 +615,13 @@ export default function ContentDetails() {
           )}
         </div>
       </div>
+
+      {/* API Limit Modal Alert */}
+      <ApiLimitModal
+        isOpen={showLimitModal}
+        onClose={() => setShowLimitModal(false)}
+        errorMessage={apiErrorMessage}
+      />
     </div>
   );
 }

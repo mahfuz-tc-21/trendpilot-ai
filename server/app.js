@@ -11,6 +11,7 @@ import recommendationRoutes from "./routes/recommendationRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import aiStudioRoutes from "./routes/aiStudioRoutes.js";
 import trashRoutes from "./routes/trashRoutes.js";
+import workspaceRoutes from "./routes/workspaceRoutes.js";
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use("/api/recommendations", recommendationRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/studio", aiStudioRoutes);
 app.use("/api/trash", trashRoutes);
+app.use("/api/workspace", workspaceRoutes);
 
 // Health Check Endpoint (per docs/04-api-specification.md)
 app.get("/api/health", (req, res) => {

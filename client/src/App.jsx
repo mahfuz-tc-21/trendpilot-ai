@@ -12,6 +12,7 @@ import ContentLibrary from "./pages/ContentLibrary.jsx";
 import Recommendations from "./pages/Recommendations.jsx";
 import ContentDetails from "./pages/ContentDetails.jsx";
 import AIStudio from "./pages/AIStudio.jsx";
+import AIHistory from "./pages/AIHistory.jsx";
 import YTStudio from "./pages/YTStudio.jsx";
 import Analytics from "./pages/Analytics.jsx";
 import Settings from "./pages/Settings.jsx";
@@ -61,6 +62,7 @@ export default function App() {
             <Route path="/library" element={<ContentLibrary />} />
             <Route path="/recommendations" element={<Recommendations />} />
             <Route path="/studio" element={<AIStudio />} />
+            <Route path="/ai-history" element={<AIHistory />} />
             <Route path="/youtube-studio" element={<YTStudio />} />
             <Route path="/content/:id" element={<ContentDetails />} />
             {/* Source Management View */}

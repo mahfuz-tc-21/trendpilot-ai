@@ -1,9 +1,9 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   Globe, Menu, X, Bell, Search, LogOut, LayoutDashboard,
   TrendingUp, FileText, Lightbulb, PenTool, BarChart3, Settings,
-  ChevronDown, ChevronRight, PlayCircle, Compass, Trash2
+  ChevronDown, ChevronRight, PlayCircle, Compass, Trash2, History
 } from "lucide-react";
 import { useAuthStore } from "../services/authStore.js";
 
@@ -158,6 +158,12 @@ export default function DashboardLayout() {
                     className="block px-3 py-1.5 text-xs text-zinc-500 hover:text-zinc-350 rounded-lg transition-colors font-medium"
                   >
                     • More Creator Tools...
+                  </NavLink>
+                  <NavLink
+                    to="/ai-history"
+                    className="block px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-100 rounded-lg transition-colors flex items-center gap-1.5 mt-1 pt-1 border-t border-zinc-850/40"
+                  >
+                    <History className="h-3 w-3 inline" /> Content History
                   </NavLink>
                 </div>
               )}
@@ -361,6 +367,19 @@ export default function DashboardLayout() {
           >
             <PenTool className="mr-3 h-5 w-5" />
             AI Studio
+          </NavLink>
+          <NavLink
+            to="/ai-history"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={({ isActive }) =>
+              `group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-colors ${isActive
+                ? "bg-indigo-600 text-white"
+                : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+              }`
+            }
+          >
+            <History className="mr-3 h-5 w-5" />
+            AI History
           </NavLink>
           <NavLink
             to="/competitors"
