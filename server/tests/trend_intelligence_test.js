@@ -102,7 +102,7 @@ async function runTrendIntelligenceTest() {
     // 6. Test computed trending topics list
     const topicsList = await dashboardService.getTrendingTopicsList(user._id);
     assert(topicsList.length > 0, "Successfully computed list of trending topics from MongoDB summaries");
-    
+
     const targetTopic = topicsList.find(t => t.topic === "SaaS AI Test");
     assert(!!targetTopic, "Calculated list includes the topic 'SaaS AI Test'");
     if (targetTopic) {
@@ -113,7 +113,7 @@ async function runTrendIntelligenceTest() {
     // 7. Test trend detail panel AI analysis
     console.log("🤖 Querying Gemini for SaaS AI Test details...");
     const detail = await dashboardService.getTrendDetail(user._id, "SaaS AI Test");
-    
+
     assert(!!detail, "Successfully retrieved trend detail from Gemini");
     if (detail) {
       assert(typeof detail.description === "string" && detail.description.length > 0, "Returned detailed trend description");

@@ -168,11 +168,10 @@ export default function Trends() {
                       setBeatingCompetitor(null);
                       setCompetitorStrategy(null);
                     }}
-                    className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer space-y-2 ${
-                      selectedTopic.toLowerCase() === t.topic.toLowerCase()
+                    className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer space-y-2 ${selectedTopic.toLowerCase() === t.topic.toLowerCase()
                         ? "border-indigo-500/80 bg-indigo-500/5"
                         : "border-zinc-850 bg-zinc-950/20 hover:border-zinc-800"
-                    }`}
+                      }`}
                   >
                     <div className="flex justify-between items-start gap-2">
                       <span className="font-bold text-zinc-100 text-xs tracking-wide">{t.topic}</span>
@@ -278,11 +277,10 @@ export default function Trends() {
                       setBeatingCompetitor(null);
                       setCompetitorStrategy(null);
                     }}
-                    className={`h-10 px-4 text-xs font-bold border-b-2 whitespace-nowrap transition-colors cursor-pointer ${
-                      activeTab === tab.id
+                    className={`h-10 px-4 text-xs font-bold border-b-2 whitespace-nowrap transition-colors cursor-pointer ${activeTab === tab.id
                         ? "border-indigo-500 text-white"
                         : "border-transparent text-zinc-500 hover:text-zinc-300"
-                    }`}
+                      }`}
                   >
                     {tab.label}
                   </button>
@@ -502,11 +500,10 @@ export default function Trends() {
                         >
                           <div className="space-y-2">
                             <div className="flex justify-between items-start gap-4">
-                              <span className={`px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-wider border ${
-                                item.platform === "youtube"
+                              <span className={`px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-wider border ${item.platform === "youtube"
                                   ? "bg-red-500/10 border-red-500/20 text-red-400"
                                   : "bg-indigo-500/10 border-indigo-500/20 text-indigo-400"
-                              }`}>
+                                }`}>
                                 {item.platform}
                               </span>
                               <span className="text-[10px] text-zinc-500 font-semibold">

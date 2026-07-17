@@ -81,107 +81,167 @@ class FacebookCrawler {
         const postLocator = postLocators.nth(i);
 
         try {
-          // Check for expand button inside this specific post
-          const expandSelectors = [
-            'div[role="button"]:has-text("See more")',
-            'div[role="button"]:has-text("See More")',
-            'span:has-text("See more")',
-            'span:has-text("See More")',
-            'span:has-text("Continue Reading")',
-            'div:has-text("Continue Reading")',
-            'a:has-text("See more")',
-            'a:has-text("See More")',
-            'a:has-text("Continue Reading")'
-          ];
-          
-          let expandButton = null;
-          for (const sel of expandSelectors) {
-            const loc = postLocator.locator(sel).first();
-            if (await loc.isVisible()) {
-              const text = await loc.innerText();
-              const lowerText = text.toLowerCase();
-              // Ignore translations or other items containing button selectors
-              if (
-                (lowerText.includes("see more") || lowerText.includes("continue reading")) &&
-                !lowerText.includes("translation")
-              ) {
-                expandButton = loc;
-                break;
-              }
-            }
-          }
-
-          let expansionSuccessful = false;
-          if (expandButton) {
-            console.log(`☝️ Clicking expand text button in post #${i}`);
-            try {
-              const checkCaptionText = async () => {
-                const messageLocators = [
-                  postLocator.locator('div[data-ad-preview="message"]'),
-                  postLocator.locator('div[data-ad-comet-preview="message"]'),
-                  postLocator.locator('div[dir="auto"]').first()
-                ];
-                for (const loc of messageLocators) {
-                  if (await loc.isVisible()) {
-                    return (await loc.innerText()).trim();
-                  }
+          // Find the caption container first and read collapsed caption
+          let captionContainer = null;
+          const readCaption = async () => {
+            const messageLocators = [
+              postLocator.locator('div[data-ad-preview="message"]'),
+              postLocator.locator('div[data-ad-comet-preview="message"]'),
+              postLocator.locator('div[dir="auto"]').first()
+            ];
+            for (const loc of messageLocators) {
+              if (await loc.isVisible()) {
+                const text = (await loc.innerText()).trim();
+                if (text) {
+                  captionContainer = loc;
+                  return text;
                 }
-                return "";
-              };
-
-              const initialLen = (await checkCaptionText()).length;
-              await expandButton.click({ timeout: 3000 });
-              await page.waitForTimeout(500); // Base delay for DOM calculation
-
-              // Poll to wait until expanded text is rendered
-              let currentText = await checkCaptionText();
-              let attempts = 0;
-              while (currentText.length <= initialLen && attempts < 5) {
-                await page.waitForTimeout(100);
-                currentText = await checkCaptionText();
-                attempts++;
               }
-              
-              if (currentText.length > initialLen) {
-                expansionSuccessful = true;
-                console.log(`📈 Expanded post text length went from ${initialLen} to ${currentText.length}`);
-              }
-            } catch (clickErr) {
-              console.warn(`⚠️ Warning: Failed to expand post text: ${clickErr.message}`);
             }
-          }
+            return "";
+          };
 
-          // Extract caption
-          const messageLocators = [
-            postLocator.locator('div[data-ad-preview="message"]'),
-            postLocator.locator('div[data-ad-comet-preview="message"]'),
-            postLocator.locator('div[dir="auto"]').first()
-          ];
-          let caption = "";
-          for (const loc of messageLocators) {
-            if (await loc.isVisible()) {
-              caption = (await loc.innerText()).trim();
-              if (caption) break;
-            }
-          }
-
-          if (!caption) {
+          const collapsedCaption = await readCaption();
+          if (!collapsedCaption) {
             continue; // Skip posts without text contents
           }
+          const collapsedLen = collapsedCaption.length;
 
-          // Clean caption text from trailing expand button labels if they are extracted as part of innerText
-          // Ignore "See translation" and clean button variations
+          // Check if the collapsed caption actually contains expand cues
+          const isCollapsed = collapsedCaption.includes("See more") || 
+                              collapsedCaption.includes("See More") || 
+                              collapsedCaption.includes("...More") || 
+                              collapsedCaption.includes("... More") ||
+                              collapsedCaption.includes("Continue Reading");
+
+          // Find the expand button belonging to this post only (restricted to captionContainer)
+          let expandButton = null;
+          if (isCollapsed && captionContainer) {
+            const candidates = captionContainer.locator('span, div, a, [role="button"]');
+            const candCount = await candidates.count();
+            for (let c = 0; c < candCount; c++) {
+              const candidate = candidates.nth(c);
+              if (await candidate.isVisible()) {
+                const text = (await candidate.innerText()).trim();
+                const lowerText = text.toLowerCase();
+                if (
+                  (text === "See more" || text === "See More" || text === "Continue Reading" || text === "...More" || text === "... More" || text === "See more..." || text === "See More...") &&
+                  !lowerText.includes("translation") &&
+                  !lowerText.includes("translate")
+                ) {
+                  expandButton = candidate;
+                  break;
+                }
+              }
+            }
+          }
+
+          // Scroll post into view and wait for visibility
+          await postLocator.scrollIntoViewIfNeeded({ timeout: 5000 });
+          await page.waitForTimeout(500);
+
+          // Remove any login overlay blocking pointer events
+          await page.evaluate(() => {
+            const dialogs = document.querySelectorAll('div[role="dialog"], [id^="login_popup"], div.x10l6tqk.x1u3tt22');
+            dialogs.forEach(el => el.remove());
+            
+            const banners = Array.from(document.querySelectorAll('div')).filter(el => {
+              const text = el.innerText || "";
+              return text.includes("See more of") && text.includes("Log In") && text.includes("Create new account");
+            });
+            banners.forEach(el => el.remove());
+            
+            document.documentElement.style.overflow = 'auto';
+            document.body.style.overflow = 'auto';
+            document.documentElement.style.pointerEvents = 'auto';
+            document.body.style.pointerEvents = 'auto';
+          });
+
+          let expandedCaption = "";
+          let expandedLen = 0;
+          let expansionSuccessful = false;
+          let expansionAttempted = isCollapsed;
+
+          if (isCollapsed && expandButton) {
+            let attempts = 0;
+            while (attempts < 2) {
+              try {
+                // Ensure post is in view and clean overlays before click
+                await postLocator.scrollIntoViewIfNeeded({ timeout: 2000 });
+                await page.evaluate(() => {
+                  const dialogs = document.querySelectorAll('div[role="dialog"], [id^="login_popup"], div.x10l6tqk.x1u3tt22');
+                  dialogs.forEach(el => el.remove());
+                });
+
+                try {
+                  await expandButton.click({ timeout: 2500 });
+                } catch {
+                  // Fallback to javascript click if standard click is intercepted or times out
+                  await expandButton.evaluate(el => el.click());
+                }
+
+                await page.waitForTimeout(400); // wait 300-500 ms
+
+                expandedCaption = await readCaption();
+                expandedLen = expandedCaption.length;
+                if (expandedLen > collapsedLen) {
+                  expansionSuccessful = true;
+                  break;
+                }
+              } catch (clickErr) {
+                console.warn(`⚠️ Click attempt ${attempts + 1} failed: ${clickErr.message}`);
+              }
+              attempts++;
+              if (attempts < 2) {
+                await page.waitForTimeout(500);
+              }
+            }
+          }
+
+          // Log expansion metrics exactly as required
+          console.log(`Post ${posts.length + 1}`);
+          console.log(`Collapsed Length: ${collapsedLen}`);
+          console.log(`Expanded Length: ${expansionAttempted ? (expansionSuccessful ? expandedLen : (expandedLen || collapsedLen)) : collapsedLen}`);
+          console.log(expansionAttempted ? (expansionSuccessful ? "Expanded Successfully" : "Expansion Failed") : "Expanded Successfully");
+
+          // Save debug screenshot after expansion/attempt
+          try {
+            const screenshotDir = path.join(process.cwd(), "screenshots");
+            await fs.mkdir(screenshotDir, { recursive: true });
+            const filename = `post_${posts.length + 1}_expanded_${Date.now()}.png`;
+            const screenshotPath = path.join(screenshotDir, filename);
+            await page.screenshot({ path: screenshotPath });
+            console.log(`📸 Saved debug screenshot to: ${screenshotPath}`);
+          } catch (screenshotErr) {
+            console.error(`⚠️ Failed to save debug screenshot: ${screenshotErr.message}`);
+          }
+
+          let caption = "";
+          if (expansionAttempted) {
+            if (expansionSuccessful) {
+              caption = expandedCaption;
+            } else {
+              caption = "Expansion Failed";
+            }
+          } else {
+            caption = collapsedCaption;
+          }
+
+          // Clean caption text
           caption = caption
             .replace(/\s*See\s+translation\s*$/i, "")
-            .replace(/\s*See\s+more\s*\.\.\.\s*$/i, "")
-            .replace(/\s*See\s+More\s*\.\.\.\s*$/i, "")
+            .replace(/\s*Translate\s*$/i, "")
             .replace(/\s*See\s+more\s*$/i, "")
             .replace(/\s*See\s+More\s*$/i, "")
+            .replace(/\s*See\s+less\s*$/i, "")
+            .replace(/\s*See\s+Less\s*$/i, "")
             .replace(/\s*Continue\s+Reading\s*$/i, "")
+            .replace(/\s*\.\.\.More\s*$/i, "")
+            .replace(/\s*\.\.\.\s*More\s*$/i, "")
             .trim();
 
           // Log warning if expansion failed but we keep partial caption
-          if (expandButton && !expansionSuccessful) {
+          if (expansionAttempted && !expansionSuccessful) {
             console.warn(`⚠️ Warning: Post #${i} expansion failed or did not yield longer text.`);
           }
 
