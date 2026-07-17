@@ -10,6 +10,14 @@ const dashboardService = {
   },
 
   /**
+   * Fetch comprehensive historical SaaS intelligence analytics metrics.
+   */
+  getAnalytics: async () => {
+    const response = await api.get("/api/dashboard/analytics");
+    return response.data.data;
+  },
+
+  /**
    * Fetch aggregate trend analytics (topics, keywords, categories).
    */
   getTrends: async () => {

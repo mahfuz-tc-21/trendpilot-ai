@@ -3,14 +3,24 @@ import Summary from "../models/Summary.js";
 import User from "../models/User.js";
 import StudioOutput from "../models/StudioOutput.js";
 import { getAIClient, getLanguageInstruction } from "../services/aiService.js";
+import liveWorkspaceService from "../services/liveWorkspaceService.js";
 
 class AIStudioController {
   /**
-   * Generates custom platform-specific social posts or articles from a source item.
+   * Generates custom platform-specific social posts or articles from multiple input sources.
    */
   async generatePost(req, res, next) {
     try {
-      const { contentId, format, instructions } = req.body;
+      const { 
+        inputType = "crawled_content",
+        contentId, 
+        customTopic, 
+        pastedContent, 
+        url, 
+        facebookSelection = "latest",
+        format, 
+        instructions 
+      } = req.body;
 
       if (!format) {
         const error = new Error("Format is required (e.g. LinkedIn, Twitter, Blog, YouTube, Newsletter)");
@@ -21,7 +31,13 @@ class AIStudioController {
       const userId = req.user.userId;
       let contentInfoText = "";
 
-      if (contentId) {
+      // Handle 7 different input source types
+      if (inputType === "crawled_content") {
+        if (!contentId) {
+          const error = new Error("Content ID is required for Crawled Content source");
+          error.status = 400;
+          throw error;
+        }
         const contentItem = await ContentItem.findById(contentId).populate("sourceId");
         if (!contentItem) {
           const error = new Error("Content item not found");
@@ -29,14 +45,7 @@ class AIStudioController {
           throw error;
         }
 
-        if (contentItem.userId && contentItem.userId.toString() !== userId.toString()) {
-          const error = new Error("Forbidden: Access denied");
-          error.status = 403;
-          throw error;
-        }
-
         const summary = await Summary.findOne({ contentId, userId });
-
         contentInfoText = `
 Source Title: ${contentItem.title}
 Source Description: ${contentItem.description}
@@ -46,8 +55,105 @@ AI Summary: ${summary?.summary || ""}
 Key Takeaways: ${summary?.keyPoints?.join("\n- ") || ""}
 Keywords: ${summary?.keywords?.join(", ") || ""}
 `;
+      } else if (inputType === "custom_topic") {
+        if (!customTopic || !customTopic.topic) {
+          const error = new Error("Topic name is required for Custom Topic");
+          error.status = 400;
+          throw error;
+        }
+        contentInfoText = `
+INPUT TYPE: Custom Topic
+Topic Title: ${customTopic.topic}
+Target Audience Profile: ${customTopic.audience || "General Audience"}
+Preferred Tone: ${customTopic.tone || "Professional"}
+Preferred Language: ${customTopic.language || "Auto Detect"}
+Target Keywords: ${customTopic.keywords || "None"}
+Reference URLs: ${customTopic.referenceUrls || "None"}
+Additional Instructions: ${customTopic.instructions || "None"}
+`;
+      } else if (inputType === "paste_content") {
+        if (!pastedContent) {
+          const error = new Error("Pasted content context is required");
+          error.status = 400;
+          throw error;
+        }
+        contentInfoText = `
+INPUT TYPE: Pasted Raw Content Context
+Pasted Text Context:
+\"\"\"
+${pastedContent}
+\"\"\"
+`;
+      } else if (inputType === "website_url") {
+        if (!url) {
+          const error = new Error("Website URL is required");
+          error.status = 400;
+          throw error;
+        }
+        const webData = await liveWorkspaceService.crawlWebsite(url);
+        contentInfoText = `
+INPUT TYPE: Ingested Website URL
+Page Title: ${webData.title}
+Page Description: ${webData.description}
+Keywords: ${webData.keywords}
+Main Content:
+\"\"\"
+${webData.content}
+\"\"\"
+`;
+      } else if (inputType === "facebook_url") {
+        if (!url) {
+          const error = new Error("Facebook Page URL is required");
+          error.status = 400;
+          throw error;
+        }
+        const fbData = await liveWorkspaceService.crawlFacebookPage(url, facebookSelection);
+        contentInfoText = `
+INPUT TYPE: Ingested Facebook Page Feed
+Facebook Page: ${url}
+Post Selection Strategy: ${facebookSelection}
+Crawled Post Captions Context:
+\"\"\"
+${fbData.content}
+\"\"\"
+`;
+      } else if (inputType === "youtube_url") {
+        if (!url) {
+          const error = new Error("YouTube Video URL is required");
+          error.status = 400;
+          throw error;
+        }
+        const ytData = await liveWorkspaceService.crawlYouTubeVideo(url);
+        contentInfoText = `
+INPUT TYPE: Ingested YouTube Video
+Video Title: ${ytData.title}
+Video Duration: ${ytData.duration}
+Video Description: ${ytData.description}
+Video Outline & Transcript Context:
+\"\"\"
+${ytData.content}
+\"\"\"
+`;
+      } else if (inputType === "blog_url") {
+        if (!url) {
+          const error = new Error("Blog URL is required");
+          error.status = 400;
+          throw error;
+        }
+        const blogData = await liveWorkspaceService.crawlBlog(url);
+        contentInfoText = `
+INPUT TYPE: Ingested Blog Article
+Blog Title: ${blogData.title}
+Blog Description: ${blogData.description}
+Blog Content:
+\"\"\"
+${blogData.content}
+\"\"\"
+`;
       } else {
-        contentInfoText = "Generating custom post from scratch without source reference.";
+        const error = new Error(`Unsupported input source type: ${inputType}`);
+        error.status = 400;
+        throw error;
       }
 
       const prompt = `You are a world-class creator, SEO copywriter, and growth marketer. 
@@ -97,11 +203,26 @@ Custom Creator Directives:
 Respond with ONLY the generated markdown content. Do not include markdown code block ticks (\`\`\`markdown) or any other conversational preambles/introductory comments. Return only the raw formatted text.`;
 
       const user = await User.findById(userId);
-      const language = user?.language || "bn";
-      const finalPrompt = prompt + getLanguageInstruction(language);
+      let userLanguage = user?.language || "bn";
+      let toneInstruction = "";
+      let audienceInstruction = "";
+
+      if (inputType === "custom_topic" && customTopic) {
+        if (customTopic.tone) {
+          toneInstruction = `\n- Tone of Voice: Strictly write in a ${customTopic.tone} tone.`;
+        }
+        if (customTopic.audience) {
+          audienceInstruction = `\n- Target Audience: Write content targeted specifically to ${customTopic.audience}.`;
+        }
+        if (customTopic.language && customTopic.language !== "Auto Detect") {
+          userLanguage = customTopic.language === "Bangla" ? "bn" : "en";
+        }
+      }
+
+      const finalPrompt = prompt + toneInstruction + audienceInstruction + getLanguageInstruction(userLanguage);
 
       console.log(`🤖 AI Studio generating ${format} draft...`);
-      const ai = await getAIClient(req.user?.userId);
+      const ai = await getAIClient(userId);
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: finalPrompt,
@@ -121,7 +242,7 @@ Respond with ONLY the generated markdown content. Do not include markdown code b
         .replace(/```$/, "")
         .trim();
 
-      // Persist the output to database per user
+      // Persist output
       const studioOutput = new StudioOutput({
         userId,
         contentId: contentId || null,
@@ -144,11 +265,11 @@ Respond with ONLY the generated markdown content. Do not include markdown code b
   }
 
   /**
-   * Interactively refines generated drafts using natural chat instructions.
+   * Interactively refines generated drafts using natural chat instructions with history support.
    */
   async refinePost(req, res, next) {
     try {
-      const { currentContent, chatPrompt, format } = req.body;
+      const { currentContent, chatPrompt, format, history = [] } = req.body;
 
       if (!currentContent) {
         const error = new Error("Current content draft is required to perform refinement");
@@ -161,36 +282,37 @@ Respond with ONLY the generated markdown content. Do not include markdown code b
         throw error;
       }
 
-      const prompt = `You are an elite copy editor and content strategist. 
-Refine the following draft copy based on the user's feedback/instructions.
+      const systemInstruction = `You are an elite copy editor and content strategist. 
+Your task is to iteratively refine the current draft copy based on the user's chat feedback/instructions.
+Always modify and edit the previous draft. Preserve the target format (${format || "general"}) and main subject unless requested otherwise.
+Always respond with ONLY the updated draft content. Do not include markdown block ticks or chat introductions.`;
 
-Original Draft Content (Format: ${format || "general"}):
-"""
-${currentContent}
-"""
+      const formattedHistory = history.map(h => ({
+        role: h.role === "assistant" || h.role === "model" ? "model" : "user",
+        parts: [{ text: h.text }]
+      }));
 
-User Refinement Request:
-"${chatPrompt}"
+      // Add a fallback current content context if history is empty
+      if (formattedHistory.length === 0) {
+        formattedHistory.push(
+          { role: "user", parts: [{ text: `Here is the current draft: \n"""\n${currentContent}\n"""` }] },
+          { role: "model", parts: [{ text: "Got it. I will refine this draft copy based on your upcoming instructions." }] }
+        );
+      }
 
-Refinement Directives:
-- Maintain the original intent and content subject unless explicitly instructed otherwise.
-- Apply structural modifications, translation, shortening, lengthening, formatting, or tone adjustment as requested.
-- For Twitter threads, preserve the "---" delimiters separating individual tweets.
-- Respond with ONLY the updated draft content. Do not include markdown block ticks or chat introductions. Return the clean text draft only.`;
-
-      const userId = req.user.userId;
-      const user = await User.findById(userId);
-      const language = user?.language || "bn";
-      const finalPrompt = prompt + getLanguageInstruction(language);
-
-      console.log("🤖 AI Studio refining draft via chat...");
+      console.log("🤖 AI Studio refining draft via multi-turn chat...");
       const ai = await getAIClient(req.user?.userId);
-      const response = await ai.models.generateContent({
+      const chat = ai.chats.create({
         model: "gemini-2.5-flash",
-        contents: finalPrompt,
+        history: formattedHistory,
         config: {
+          systemInstruction,
           temperature: 0.6
         }
+      });
+
+      const response = await chat.sendMessage({
+        message: chatPrompt
       });
 
       let refinedText = response.text;
@@ -204,7 +326,7 @@ Refinement Directives:
         .replace(/```$/, "")
         .trim();
 
-      // Persist the refined output to database per user
+      // Persist refined output
       const studioOutput = new StudioOutput({
         userId: req.user.userId,
         contentId: null,

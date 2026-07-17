@@ -297,3 +297,79 @@
 .light ::-webkit-scrollbar-thumb {
   background: #d4d4d8 !important;
 }
+
+/* Custom additions for Trend Intelligence & Library detail cards in Light mode */
+.light .bg-zinc-950\/80 {
+  background-color: #f4f4f5 !important;
+  color: #18181b !important;
+  border-color: #e4e4e7 !important;
+}
+
+.light .bg-zinc-950\/60 {
+  background-color: #f4f4f5 !important;
+  color: #18181b !important;
+  border-color: #e4e4e7 !important;
+}
+
+.light .bg-zinc-950\/30 {
+  background-color: #ffffff !important;
+  color: #18181b !important;
+  border-color: #e4e4e7 !important;
+}
+
+.light .bg-zinc-950\/20 {
+  background-color: #ffffff !important;
+  color: #18181b !important;
+  border-color: #e4e4e7 !important;
+}
+
+.light .bg-zinc-900\/10 {
+  background-color: #f4f4f5 !important;
+}
+
+.light .bg-zinc-900\/15 {
+  background-color: #fafafa !important;
+}
+
+.light .border-zinc-850,
+.light .border-zinc-855,
+.light .border-zinc-900\/30,
+.light .border-zinc-900\/40,
+.light .border-zinc-900\/60,
+.light .border-zinc-900\/80 {
+  border-color: #e4e4e7 !important;
+}
+
+.light .text-zinc-150 {
+  color: #18181b !important;
+}
+
+.light .text-zinc-550 {
+  color: #52525b !important;
+}
+
+.light .text-zinc-650 {
+  color: #71717a !important;
+}
+
+.light .text-zinc-655 {
+  color: #71717a !important;
+}
+
+.light .bg-indigo-950\/20 {
+  background-color: rgba(99, 102, 241, 0.08) !important;
+  color: #4f46e5 !important;
+  border-color: rgba(99, 102, 241, 0.15) !important;
+}
+
+.light .text-indigo-400 {
+  color: #4f46e5 !important;
+}
+
+.light .text-indigo-450 {
+  color: #4f46e5 !important;
+}
+
+.light .text-zinc-350 {
+  color: #27272a !important;
+}

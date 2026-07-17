@@ -10,6 +10,9 @@ router.get("/stats", protect, dashboardController.getStats);
 // Get trend analytics (top topics, keywords, categories)
 router.get("/trends", protect, dashboardController.getTrends);
 
+// Get historical SaaS intelligence analytics
+router.get("/analytics", protect, dashboardController.getAnalytics);
+
 // Get calculated trending topics from MongoDB
 router.get("/trends/topics", protect, dashboardController.getTrendingTopics);
 

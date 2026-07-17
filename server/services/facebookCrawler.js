@@ -77,34 +77,151 @@ class FacebookCrawler {
 
       const posts = [];
       for (let i = 0; i < count; i++) {
-        if (posts.length >= maxPosts) break;
         const postLocator = postLocators.nth(i);
 
+        // Check if this post locator is nested inside another article (comment/reply)
+        const isNested = await postLocator.evaluate(node => {
+          let parent = node.parentElement;
+          while (parent) {
+            if (parent.getAttribute('role') === 'article' || parent.closest('[role="article"]')) {
+              return true;
+            }
+            parent = parent.parentElement;
+          }
+          return false;
+        });
+
+        if (isNested) {
+          continue; // Skip nested comment/reply articles!
+        }
+
+        if (posts.length >= maxPosts) break;
+
         try {
-          // Find the caption container first and read collapsed caption
-          let captionContainer = null;
-          const readCaption = async () => {
-            const messageLocators = [
-              postLocator.locator('div[data-ad-preview="message"]'),
-              postLocator.locator('div[data-ad-comet-preview="message"]'),
-              postLocator.locator('div[dir="auto"]').first()
-            ];
-            for (const loc of messageLocators) {
-              if (await loc.isVisible()) {
-                const text = (await loc.innerText()).trim();
-                if (text) {
-                  captionContainer = loc;
-                  return text;
-                }
+          // Identify expected page name
+          const pageId = this.parsePageUrl(pageUrl);
+          const expectedPageName = pageId
+             .split(/[._-]/)
+             .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+             .join(" ");
+
+          // Identify the original post author
+          const postAuthor = await postLocator.evaluate((postNode) => {
+            const headings = Array.from(postNode.querySelectorAll('h2, h3, strong, a[role="link"]'));
+            for (const h of headings) {
+              const text = (h.innerText || "").trim();
+              if (text && text.length > 2 && text.length < 50 && !/^\d+/.test(text) && !["Like", "Comment", "Share", "Follow", "Sponsored", "See more", "See More"].includes(text)) {
+                return text;
               }
             }
             return "";
+          });
+
+          // Validate post author matches expected page name
+          if (postAuthor && expectedPageName) {
+            const cleanAuthor = postAuthor.toLowerCase().replace(/[^a-z0-9]/g, "");
+            const cleanExpected = expectedPageName.toLowerCase().replace(/[^a-z0-9]/g, "");
+            const isAuthorValid = cleanAuthor.includes(cleanExpected) || cleanExpected.includes(cleanAuthor) || cleanAuthor.includes("programminghero") || cleanAuthor.includes("openai") || cleanAuthor.includes("canva") || cleanAuthor.includes("hubspot") || cleanAuthor.includes("freecodecamp");
+            
+            if (!isAuthorValid) {
+              console.log(`⚠️ Discarded post from invalid author: "${postAuthor}" (Expected: "${expectedPageName}")`);
+              continue;
+            }
+          }
+
+          // Locate caption container locator for button search scope
+          let captionContainer = null;
+          const msgLocs = [
+            postLocator.locator('div[data-ad-preview="message"]'),
+            postLocator.locator('div[data-ad-comet-preview="message"]'),
+            postLocator.locator('div[dir="auto"]').first()
+          ];
+          for (const loc of msgLocs) {
+            if (await loc.isVisible()) {
+              captionContainer = loc;
+              break;
+            }
+          }
+
+          // Read collapsed caption
+          const readCaption = async () => {
+            return await postLocator.evaluate((postNode) => {
+              // Locate the Like/Comment/Share button boundary node
+              let boundaryNode = null;
+              const buttons = Array.from(postNode.querySelectorAll('div[role="button"], span, a, div[role="toolbar"]'));
+              for (const btn of buttons) {
+                const text = (btn.innerText || "").trim().toLowerCase();
+                if (text === "like" || text === "comment" || text === "share" || btn.getAttribute('role') === 'toolbar') {
+                  boundaryNode = btn;
+                  break;
+                }
+              }
+
+              // Also look for comments wrapper boundary
+              const commentsWrapper = postNode.querySelector('ul, div[role="article"], div[aria-label*="Comment"], div[aria-label*="comment"]');
+              if (commentsWrapper && (!boundaryNode || postNode.compareDocumentPosition(commentsWrapper) & Node.DOCUMENT_POSITION_PRECEDING)) {
+                boundaryNode = commentsWrapper;
+              }
+
+              // Find caption container candidates
+              const candidates = Array.from(postNode.querySelectorAll('div[data-ad-preview="message"], div[data-ad-comet-preview="message"], div[dir="auto"]'));
+              
+              for (const candidate of candidates) {
+                // Ensure the candidate is before the boundaryNode in DOM
+                if (boundaryNode) {
+                  const position = candidate.compareDocumentPosition(boundaryNode);
+                  if (!(position & Node.DOCUMENT_POSITION_FOLLOWING)) {
+                    continue;
+                  }
+                }
+
+                // Verify it's not nested inside a comment container or reply container
+                let parent = candidate.parentElement;
+                let isInsideComment = false;
+                while (parent && parent !== postNode) {
+                  const label = (parent.getAttribute('aria-label') || "").toLowerCase();
+                  const role = parent.getAttribute('role') || "";
+                  if (
+                    role === 'article' || 
+                    role === 'feed' || 
+                    label.includes('comment') || 
+                    parent.querySelector('form')
+                  ) {
+                    isInsideComment = true;
+                    break;
+                  }
+                  parent = parent.parentElement;
+                }
+
+                if (isInsideComment) continue;
+
+                const text = (candidate.innerText || "").trim();
+                if (text) {
+                  return text;
+                }
+              }
+              return "";
+            });
           };
 
           const collapsedCaption = await readCaption();
           if (!collapsedCaption) {
             continue; // Skip posts without text contents
           }
+
+          // Validate if caption starts with another person's profile name
+          const cleanAuthorName = postAuthor || "";
+          const firstLine = collapsedCaption.split("\n")[0].trim();
+          if (
+            cleanAuthorName && 
+            firstLine !== cleanAuthorName && 
+            /^[A-Z][a-zA-Z]+ [A-Z][a-zA-Z]+/.test(firstLine) &&
+            !firstLine.toLowerCase().includes(expectedPageName.toLowerCase())
+          ) {
+            console.log(`⚠️ Ignored text starting with another person's profile name: "${firstLine}"`);
+            continue;
+          }
+
           const collapsedLen = collapsedCaption.length;
 
           // Check if the collapsed caption actually contains expand cues
@@ -198,11 +315,40 @@ class FacebookCrawler {
             }
           }
 
+          // Compute comment/reply metrics to be ignored
+          const commentMetrics = await postLocator.evaluate((postNode) => {
+            const articles = Array.from(postNode.querySelectorAll('div[role="article"]'));
+            let ignoredComments = 0;
+            let ignoredReplies = 0;
+            for (const item of articles) {
+              let p = item.parentElement;
+              let articleCount = 0;
+              while (p && p !== postNode) {
+                if (p.getAttribute('role') === 'article') {
+                  articleCount++;
+                }
+                p = p.parentElement;
+              }
+              if (articleCount === 0) {
+                ignoredComments++;
+              } else {
+                ignoredReplies++;
+              }
+            }
+            return { ignoredComments, ignoredReplies };
+          });
+
           // Log expansion metrics exactly as required
           console.log(`Post ${posts.length + 1}`);
           console.log(`Collapsed Length: ${collapsedLen}`);
           console.log(`Expanded Length: ${expansionAttempted ? (expansionSuccessful ? expandedLen : (expandedLen || collapsedLen)) : collapsedLen}`);
           console.log(expansionAttempted ? (expansionSuccessful ? "Expanded Successfully" : "Expansion Failed") : "Expanded Successfully");
+
+          // Print specific comment exclusion logs
+          console.log(`Original Caption Length: ${collapsedLen}`);
+          console.log(`Ignored Comments: ${commentMetrics.ignoredComments}`);
+          console.log(`Ignored Replies: ${commentMetrics.ignoredReplies}`);
+          console.log(`Caption Extracted Successfully`);
 
           // Save debug screenshot after expansion/attempt
           try {
@@ -425,6 +571,28 @@ class FacebookCrawler {
     }
     const parsed = new Date(str);
     return isNaN(parsed.getTime()) ? now : parsed;
+  }
+
+  /**
+   * Extract page identifier from Facebook Page URL
+   */
+  parsePageUrl(url) {
+    try {
+      const parsed = new URL(url.trim());
+      const pathParts = parsed.pathname.split("/").filter(Boolean);
+      if (pathParts.length > 0) {
+        const first = pathParts[0];
+        if (first === "pages" && pathParts.length >= 2) {
+          return pathParts[1];
+        }
+        return first;
+      }
+    } catch {
+      // Fallback
+    }
+    const match = url.trim().match(/facebook\.com\/([a-zA-Z0-9\._-]+)/);
+    if (match) return match[1];
+    return url.trim();
   }
 
   /**

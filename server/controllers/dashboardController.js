@@ -41,6 +41,24 @@ class DashboardController {
   }
 
   /**
+   * Fetch comprehensive historical SaaS analytics.
+   */
+  async getAnalytics(req, res, next) {
+    try {
+      const userId = req.user.userId;
+      const report = await dashboardService.getAnalytics(userId);
+
+      return res.status(200).json({
+        success: true,
+        message: "Analytics report compiled successfully",
+        data: report
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * Fetch recently crawled/ingested content.
    */
   async getRecentContent(req, res, next) {

@@ -85,7 +85,11 @@ class FacebookService {
           thumbnail: post.imageUrls[0] || "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=500",
           author: pageName,
           publishedAt: post.postedDate,
-          rawText: `[Engagement Metrics: Likes: ${post.reactionCount || 0}, Comments: ${post.commentCount || 0}, Shares: ${post.shareCount || 0}]\n\n${post.caption}`,
+          rawText: `[Engagement Metrics: Likes: ${post.reactionCount || 0}, Comments: ${post.commentCount || 0}, Shares: ${post.shareCount || 0}]
+[Media - Images: ${post.imageUrls.join(", ")}]
+[Media - Videos: ${post.videoUrls.join(", ")}]
+
+${post.caption}`,
           processedStatus: "pending"
         });
 

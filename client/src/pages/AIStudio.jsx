@@ -1,9 +1,10 @@
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { 
   PenTool, Sparkles, Send, Copy, Download, Check, 
-  FileText, ArrowLeft, RefreshCw, Cpu, Activity 
+  FileText, ArrowLeft, RefreshCw, Cpu, Activity,
+  Globe, Video, Link as LinkIcon, AlertCircle
 } from "lucide-react";
 import { useAuthStore } from "../services/authStore.js";
 import api from "../services/api.js";
@@ -14,7 +15,10 @@ export default function AIStudio() {
   const paramFormat = searchParams.get("format") || "LinkedIn";
   const paramContentId = searchParams.get("contentId") || "";
 
-  // Form states
+  // 1. Unified Input Source Tab
+  const [inputType, setInputType] = useState("crawled_content");
+
+  // Input states
   const [selectedContentId, setSelectedContentId] = useState(paramContentId);
   const [format, setFormat] = useState(paramFormat);
   const [instructions, setInstructions] = useState("");
@@ -23,10 +27,28 @@ export default function AIStudio() {
   const [chatHistory, setChatHistory] = useState([]);
   const [copied, setCopied] = useState(false);
 
-  // Competitor setup states
+  // Form states for Custom Topic
+  const [topicInput, setTopicInput] = useState("");
+  const [audience, setAudience] = useState("Intermediate");
+  const [language, setLanguage] = useState("Auto Detect");
+  const [tone, setTone] = useState("Professional");
+  const [keywords, setKeywords] = useState("");
+  const [referenceUrls, setReferenceUrls] = useState("");
+  const [topicInstructions, setTopicInstructions] = useState("");
+
+  // Form states for Pasted Content
+  const [pastedText, setPastedText] = useState("");
+
+  // Form states for URL inputs (Website, FB Page, YT Video, Blog Article)
+  const [urlInput, setUrlInput] = useState("");
+  const [facebookSelection, setFacebookSelection] = useState("latest");
+
+  // Competitor setup states (fallback from previous checkpoint)
   const [useCompetitorSource, setUseCompetitorSource] = useState(false);
   const [selectedCompetitorId, setSelectedCompetitorId] = useState("");
   const [selectedCompetitorPostId, setSelectedCompetitorPostId] = useState("");
+
+  const chatEndRef = useRef(null);
 
   // Sync format parameter from URL query
   useEffect(() => {
@@ -35,8 +57,16 @@ export default function AIStudio() {
 
   // Sync content item parameter from URL query
   useEffect(() => {
-    if (paramContentId) setSelectedContentId(paramContentId);
+    if (paramContentId) {
+      setSelectedContentId(paramContentId);
+      setInputType("crawled_content");
+    }
   }, [paramContentId]);
+
+  // Auto-scroll chat history window
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatHistory]);
 
   // Load content library list for selection dropdown
   const { data: contentList = [], isLoading: listLoading } = useQuery({
@@ -70,7 +100,8 @@ export default function AIStudio() {
   // Generate draft mutation
   const generateMutation = useMutation({
     mutationFn: async () => {
-      if (useCompetitorSource && selectedCompetitorPostId) {
+      // Fallback competitor post upgrade workflow
+      if (useCompetitorSource && inputType === "crawled_content" && selectedCompetitorPostId) {
         const response = await api.post(`/api/competitors/posts/${selectedCompetitorPostId}/beat`);
         const data = response.data.data;
         const formatted = `
@@ -102,28 +133,58 @@ ${data.contentAssets?.visualIdea}
 ${data.whyItBeatsThem}
         `.trim();
         return { content: formatted };
-      } else {
-        const response = await api.post("/api/studio/generate", {
-          contentId: selectedContentId || null,
-          format,
-          instructions
-        });
-        return response.data.data;
       }
+
+      // Main redesigned workspace generation payload
+      const payload = {
+        inputType,
+        format,
+        instructions
+      };
+
+      if (inputType === "crawled_content") {
+        payload.contentId = selectedContentId || null;
+      } else if (inputType === "custom_topic") {
+        payload.customTopic = {
+          topic: topicInput,
+          audience,
+          language,
+          tone,
+          keywords,
+          referenceUrls,
+          instructions: topicInstructions
+        };
+      } else if (inputType === "paste_content") {
+        payload.pastedContent = pastedText;
+      } else {
+        payload.url = urlInput;
+        if (inputType === "facebook_url") {
+          payload.facebookSelection = facebookSelection;
+        }
+      }
+
+      const response = await api.post("/api/studio/generate", payload);
+      return response.data.data;
     },
     onSuccess: (data) => {
       setGeneratedDraft(data.content);
-      setChatHistory([{ role: "assistant", text: data.content }]);
+      setChatHistory([
+        { role: "assistant", text: `Here is your generated ${format} document. Feel free to refine it using the chat box below.` }
+      ]);
+    },
+    onError: (err) => {
+      alert(err.response?.data?.message || err.message || "Content generation failed");
     }
   });
 
-  // Refinement mutation
+  // Refinement mutation (ChatGPT-style multi-turn edit history)
   const refineMutation = useMutation({
     mutationFn: async (instruction) => {
       const response = await api.post("/api/studio/refine", {
         currentContent: generatedDraft,
         chatPrompt: instruction,
-        format
+        format,
+        history: chatHistory
       });
       return response.data.data;
     },
@@ -132,9 +193,12 @@ ${data.whyItBeatsThem}
       setChatHistory((prev) => [
         ...prev,
         { role: "user", text: instruction },
-        { role: "assistant", text: data.content }
+        { role: "assistant", text: `I have updated the document in the editor with your requested edits.` }
       ]);
       setChatPrompt("");
+    },
+    onError: (err) => {
+      alert(err.response?.data?.message || err.message || "Refinement failed");
     }
   });
 
@@ -148,7 +212,7 @@ ${data.whyItBeatsThem}
     const element = document.createElement("a");
     const file = new Blob([generatedDraft], { type: "text/plain" });
     element.href = URL.createObjectURL(file);
-    element.download = `trendpilot-studio-${format.toLowerCase()}.md`;
+    element.download = `trendpilot-workspace-${format.toLowerCase()}.md`;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
@@ -162,6 +226,21 @@ ${data.whyItBeatsThem}
       navigate("/settings");
       return;
     }
+    
+    // Validation
+    if (inputType === "custom_topic" && !topicInput.trim()) {
+      alert("Please enter a Custom Topic title first.");
+      return;
+    }
+    if (inputType === "paste_content" && !pastedText.trim()) {
+      alert("Please paste text content first.");
+      return;
+    }
+    if (["website_url", "facebook_url", "youtube_url", "blog_url"].includes(inputType) && !urlInput.trim()) {
+      alert("Please enter a valid URL.");
+      return;
+    }
+
     generateMutation.mutate();
   };
 
@@ -176,119 +255,317 @@ ${data.whyItBeatsThem}
     refineMutation.mutate(chatPrompt);
   };
 
+  const getLoadingMessage = () => {
+    if (inputType === "website_url") return "Live crawling website content and parsing HTML text...";
+    if (inputType === "facebook_url") return "Crawling public Facebook Page and expanding captions...";
+    if (inputType === "youtube_url") return "Extracting YouTube video metadata & chapters outline...";
+    if (inputType === "blog_url") return "Ingesting blog article details programmatically...";
+    if (inputType === "custom_topic") return "Synthesizing custom topic ideas and audience constraints...";
+    if (inputType === "paste_content") return "Processing pasted raw text parameters...";
+    return "Generating customized creator drafts...";
+  };
+
+  const sourceTabs = [
+    { id: "crawled_content", name: "Crawled Content", icon: FileText },
+    { id: "custom_topic", name: "Custom Topic", icon: PenTool },
+    { id: "paste_content", name: "Paste Content", icon: Cpu },
+    { id: "website_url", name: "Website URL", icon: Globe },
+    { id: "facebook_url", name: "Facebook URL", icon: Sparkles },
+    { id: "youtube_url", name: "YouTube URL", icon: Video },
+    { id: "blog_url", name: "Blog URL", icon: LinkIcon }
+  ];
+
   return (
     <div className="space-y-8">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent font-heading flex items-center gap-2">
           <PenTool className="h-8 w-8 text-indigo-500" />
-          AI Creator Studio
+          AI Content Workspace
         </h1>
-        <p className="text-zinc-400 mt-2 text-sm">
-          Select crawled trend items, specify output targets, and run real-time AI refinements.
+        <p className="text-zinc-400 mt-2 text-sm text-left">
+          Redesigned creator hub to import raw content, paste transcripts, crawl competitor feeds, and refine assets continuously.
         </p>
       </div>
 
-      {/* Main split dashboard content */}
+      {/* Segment Selector for Input Source */}
+      <div className="space-y-2 text-left">
+        <label className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider">Input Source Setup</label>
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+          {sourceTabs.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => {
+                setInputType(t.id);
+                setUseCompetitorSource(false);
+              }}
+              className={`flex flex-col items-center justify-center p-3 border rounded-2xl cursor-pointer text-center gap-1.5 transition-all duration-200 ${
+                inputType === t.id
+                  ? "border-indigo-500 bg-indigo-950/20 text-indigo-400 shadow-md shadow-indigo-500/5 scale-[1.02]"
+                  : "border-zinc-850 bg-zinc-900/10 text-zinc-400 hover:bg-zinc-850/30 hover:text-zinc-200"
+              }`}
+            >
+              <t.icon className="h-4.5 w-4.5" />
+              <span className="text-[10px] font-bold truncate w-full">{t.name}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Main split workspace content */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
         {/* Left Side: Setup & Editor (col-span-3) */}
         <div className="lg:col-span-3 space-y-6">
           {/* Setup controls */}
           <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl space-y-5 text-left">
             <h2 className="text-sm font-bold text-zinc-300 uppercase tracking-wider">
-              1. Choose Source & Target Format
+              1. Source Parameters & Constraints
             </h2>
 
-            {/* Competitor Intelligence Ingestion Toggle */}
-            <div className="flex items-center gap-2 pb-2">
-              <input
-                type="checkbox"
-                id="competitorToggle"
-                checked={useCompetitorSource}
-                onChange={(e) => setUseCompetitorSource(e.target.checked)}
-                className="rounded bg-zinc-950 border-zinc-850 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-              />
-              <label htmlFor="competitorToggle" className="text-xs font-bold text-zinc-300 cursor-pointer flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-indigo-400 animate-pulse" />
-                Generate from Competitor Post (Strategic Content Upgrade)
-              </label>
-            </div>
+            {/* DYNAMIC FORM RENDERING BASED ON ACTIVE INPUT TYPE */}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Select Source Dropdown */}
-              {!useCompetitorSource ? (
-                <div className="space-y-1">
-                  <label className="text-[10px] text-zinc-500 uppercase font-semibold">
-                    Source Content Item
+            {/* Tab 1: Crawled Content */}
+            {inputType === "crawled_content" && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-zinc-850/60">
+                  <input
+                    type="checkbox"
+                    id="competitorToggle"
+                    checked={useCompetitorSource}
+                    onChange={(e) => setUseCompetitorSource(e.target.checked)}
+                    className="rounded bg-zinc-950 border-zinc-850 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                  />
+                  <label htmlFor="competitorToggle" className="text-xs font-bold text-zinc-300 cursor-pointer flex items-center gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
+                    Ingest tracked competitor post instead
                   </label>
-                  {listLoading ? (
-                    <div className="h-10 bg-zinc-950/40 border border-zinc-850 animate-pulse rounded-xl" />
-                  ) : (
-                    <select
-                      value={selectedContentId}
-                      onChange={(e) => setSelectedContentId(e.target.value)}
-                      className="w-full h-10 px-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer"
-                    >
-                      <option value="">-- No Source Reference (Draft from scratch) --</option>
-                      {contentList.map((item) => (
-                        <option key={item._id || item.id} value={item._id || item.id}>
-                          {item.title}
-                        </option>
-                      ))}
-                    </select>
-                  )}
                 </div>
-              ) : (
-                <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] text-zinc-500 uppercase font-semibold">
-                      Select Competitor Brand
-                    </label>
-                    <select
-                      value={selectedCompetitorId}
-                      onChange={(e) => {
-                        setSelectedCompetitorId(e.target.value);
-                        setSelectedCompetitorPostId("");
-                      }}
-                      className="w-full h-10 px-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer"
-                    >
-                      <option value="">-- Select Competitor --</option>
-                      {competitors.map((c) => (
-                        <option key={c._id} value={c._id}>
-                          {c.brandName}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
 
+                {!useCompetitorSource ? (
                   <div className="space-y-1">
-                    <label className="text-[10px] text-zinc-500 uppercase font-semibold">
-                      Select Competitor Post
-                    </label>
-                    <select
-                      value={selectedCompetitorPostId}
-                      onChange={(e) => setSelectedCompetitorPostId(e.target.value)}
-                      disabled={!selectedCompetitorId}
-                      className="w-full h-10 px-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer disabled:opacity-40"
-                    >
-                      <option value="">-- Select Post --</option>
-                      {competitorPosts
-                        .filter((p) => p.competitorId?._id === selectedCompetitorId)
-                        .map((post) => (
-                          <option key={post._id} value={post._id}>
-                            [{post.format}] {post.title.substring(0, 45)}...
+                    <label className="text-[10px] text-zinc-550 uppercase font-semibold">Select Crawled Item</label>
+                    {listLoading ? (
+                      <div className="h-10 bg-zinc-950/40 border border-zinc-850 animate-pulse rounded-xl" />
+                    ) : (
+                      <select
+                        value={selectedContentId}
+                        onChange={(e) => setSelectedContentId(e.target.value)}
+                        className="w-full h-10 px-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer"
+                      >
+                        <option value="">-- No Source Reference (Draft from scratch) --</option>
+                        {contentList.map((item) => (
+                          <option key={item._id || item.id} value={item._id || item.id}>
+                            {item.title}
                           </option>
                         ))}
+                      </select>
+                    )}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-zinc-550 uppercase font-semibold">Select Competitor</label>
+                      <select
+                        value={selectedCompetitorId}
+                        onChange={(e) => {
+                          setSelectedCompetitorId(e.target.value);
+                          setSelectedCompetitorPostId("");
+                        }}
+                        className="w-full h-10 px-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer"
+                      >
+                        <option value="">-- Select Competitor --</option>
+                        {competitors.map((c) => (
+                          <option key={c._id} value={c._id}>
+                            {c.brandName}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] text-zinc-550 uppercase font-semibold">Select Post</label>
+                      <select
+                        value={selectedCompetitorPostId}
+                        onChange={(e) => setSelectedCompetitorPostId(e.target.value)}
+                        disabled={!selectedCompetitorId}
+                        className="w-full h-10 px-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer disabled:opacity-40"
+                      >
+                        <option value="">-- Select Post --</option>
+                        {competitorPosts
+                          .filter((p) => p.competitorId?._id === selectedCompetitorId)
+                          .map((post) => (
+                            <option key={post._id} value={post._id}>
+                              [{post.format}] {post.title.substring(0, 45)}...
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Tab 2: Custom Topic */}
+            {inputType === "custom_topic" && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-zinc-550 uppercase font-semibold">Topic *</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. How AI Agents Will Change Software Development"
+                      value={topicInput}
+                      onChange={(e) => setTopicInput(e.target.value)}
+                      className="w-full h-10 px-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-zinc-550 uppercase font-semibold">Target Audience</label>
+                    <select
+                      value={audience}
+                      onChange={(e) => setAudience(e.target.value)}
+                      className="w-full h-10 px-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer"
+                    >
+                      <option value="Beginner">Beginner</option>
+                      <option value="Intermediate">Intermediate</option>
+                      <option value="Professional Developers">Professional Developers</option>
+                      <option value="Students">Students</option>
+                      <option value="Business Owners">Business Owners</option>
+                      <option value="Creators">Creators</option>
                     </select>
                   </div>
                 </div>
-              )}
 
-              {/* Select format */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-zinc-550 uppercase font-semibold">Language</label>
+                    <select
+                      value={language}
+                      onChange={(e) => setLanguage(e.target.value)}
+                      className="w-full h-10 px-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer"
+                    >
+                      <option value="Auto Detect">Auto Detect</option>
+                      <option value="Bangla">Bangla</option>
+                      <option value="English">English</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1 sm:col-span-2">
+                    <label className="text-[10px] text-zinc-550 uppercase font-semibold">Tone</label>
+                    <select
+                      value={tone}
+                      onChange={(e) => setTone(e.target.value)}
+                      className="w-full h-10 px-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer"
+                    >
+                      <option value="Professional">Professional</option>
+                      <option value="Educational">Educational</option>
+                      <option value="Casual">Casual</option>
+                      <option value="Funny">Funny</option>
+                      <option value="Storytelling">Storytelling</option>
+                      <option value="Marketing">Marketing</option>
+                      <option value="Friendly">Friendly</option>
+                      <option value="Programming Hero Style">Programming Hero Style</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-zinc-550 uppercase font-semibold">Keywords (optional)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. AI, Agent, Dev, Tech"
+                      value={keywords}
+                      onChange={(e) => setKeywords(e.target.value)}
+                      className="w-full h-10 px-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-zinc-550 uppercase font-semibold">Reference URLs (optional)</label>
+                    <input
+                      type="text"
+                      placeholder="https://example.com/source"
+                      value={referenceUrls}
+                      onChange={(e) => setReferenceUrls(e.target.value)}
+                      className="w-full h-10 px-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] text-zinc-550 uppercase font-semibold">Additional Topic Instructions</label>
+                  <textarea
+                    placeholder="Provide specific notes on what elements to cover..."
+                    value={topicInstructions}
+                    onChange={(e) => setTopicInstructions(e.target.value)}
+                    rows={2}
+                    className="w-full p-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Tab 3: Paste Content */}
+            {inputType === "paste_content" && (
               <div className="space-y-1">
-                <label className="text-[10px] text-zinc-500 uppercase font-semibold">
-                  Target Platform / Output Format
-                </label>
+                <label className="text-[10px] text-zinc-550 uppercase font-semibold">Paste Raw Source Content</label>
+                <textarea
+                  placeholder="Paste Facebook/LinkedIn post content, YouTube transcripts, PDF text blocks..."
+                  value={pastedText}
+                  onChange={(e) => setPastedText(e.target.value)}
+                  rows={6}
+                  className="w-full p-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none font-sans placeholder-zinc-700"
+                />
+              </div>
+            )}
+
+            {/* Tab 4-7: URL based inputs */}
+            {["website_url", "facebook_url", "youtube_url", "blog_url"].includes(inputType) && (
+              <div className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] text-zinc-550 uppercase font-semibold">
+                    {inputType === "website_url" && "Website URL"}
+                    {inputType === "facebook_url" && "Facebook Page URL"}
+                    {inputType === "youtube_url" && "YouTube Video URL"}
+                    {inputType === "blog_url" && "Blog Article URL"}
+                  </label>
+                  <input
+                    type="url"
+                    placeholder={
+                      inputType === "website_url" ? "https://openai.com/blog" :
+                      inputType === "facebook_url" ? "https://www.facebook.com/programmingHero" :
+                      inputType === "youtube_url" ? "https://www.youtube.com/watch?v=..." :
+                      "https://medium.com/blog-slug"
+                    }
+                    value={urlInput}
+                    onChange={(e) => setUrlInput(e.target.value)}
+                    className="w-full h-10 px-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none"
+                  />
+                </div>
+
+                {inputType === "facebook_url" && (
+                  <div className="space-y-1">
+                    <label className="text-[10px] text-zinc-550 uppercase font-semibold">Select Feed Range Strategy</label>
+                    <select
+                      value={facebookSelection}
+                      onChange={(e) => setFacebookSelection(e.target.value)}
+                      className="w-full h-10 px-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none cursor-pointer"
+                    >
+                      <option value="latest">Latest Post</option>
+                      <option value="top">Top Performing Post (Engagement Matrix)</option>
+                      <option value="5_posts">Latest 5 Posts</option>
+                      <option value="10_posts">Latest 10 Posts</option>
+                      <option value="all">Generate from All Ingested Posts</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Target format & Directives */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-[10px] text-zinc-550 uppercase font-semibold">Target Output Format</label>
                 <select
                   value={format}
                   onChange={(e) => setFormat(e.target.value)}
@@ -331,48 +608,52 @@ ${data.whyItBeatsThem}
                   </optgroup>
                 </select>
               </div>
-            </div>
 
-            {/* Directives input */}
-            <div className="space-y-1">
-              <label className="text-[10px] text-zinc-500 uppercase font-semibold">
-                Creator Directives / Direct Instructions
-              </label>
-              <textarea
-                placeholder="Describe your writing requirements (e.g. Write a friendly, informational article with a funny intro. Focus on developers...)"
-                value={instructions}
-                onChange={(e) => setInstructions(e.target.value)}
-                rows={3}
-                className="w-full p-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none placeholder-zinc-700 leading-relaxed"
-              />
+              <div className="space-y-1">
+                <label className="text-[10px] text-zinc-550 uppercase font-semibold">Global Custom Directives</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Write in professional Bengali-English mix..."
+                  value={instructions}
+                  onChange={(e) => setInstructions(e.target.value)}
+                  className="w-full h-10 px-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none"
+                />
+              </div>
             </div>
 
             <button
               onClick={handleGenerateClick}
               disabled={generateMutation.isPending}
-              className="w-full h-10 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-semibold text-xs rounded-xl shadow-lg shadow-indigo-500/10 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full h-11 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-500/10 transition-colors flex items-center justify-center gap-2 cursor-pointer"
             >
               {generateMutation.isPending ? (
                 <>
                   <RefreshCw className="h-4 w-4 animate-spin" />
-                  Generating Draft Assets...
+                  Generating Workspace Assets...
                 </>
               ) : (
                 <>
                   <Sparkles className="h-4 w-4" />
-                  Generate Draft Content
+                  Generate Output Assets
                 </>
               )}
             </button>
           </div>
 
-          {/* Sandbox Editor block */}
-          {generatedDraft && (
+          {/* Editor block */}
+          {generateMutation.isPending && (
+            <div className="p-12 border border-zinc-850 bg-zinc-900/5 rounded-2xl flex flex-col items-center justify-center space-y-4 animate-pulse">
+              <RefreshCw className="h-8 w-8 text-indigo-500 animate-spin" />
+              <span className="text-xs text-zinc-400">{getLoadingMessage()}</span>
+            </div>
+          )}
+
+          {generatedDraft && !generateMutation.isPending && (
             <div className="p-6 border border-zinc-850 bg-zinc-900/15 rounded-2xl space-y-4 text-left">
               <div className="flex justify-between items-center border-b border-zinc-800/80 pb-3">
                 <div>
                   <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
-                    2. Studio Document Editor
+                    2. Workspace Document Editor
                   </h3>
                   <span className="text-[10px] text-zinc-500 uppercase font-semibold">
                     Format: {format}
@@ -399,68 +680,71 @@ ${data.whyItBeatsThem}
               <textarea
                 value={generatedDraft}
                 onChange={(e) => setGeneratedDraft(e.target.value)}
-                className="w-full h-[450px] p-4 bg-zinc-950/60 border border-zinc-900 rounded-xl text-zinc-300 text-xs font-mono leading-relaxed focus:outline-none focus:border-zinc-800"
+                className="w-full h-[520px] p-4 bg-zinc-950/60 border border-zinc-900 rounded-2xl text-zinc-350 text-xs font-mono leading-relaxed focus:outline-none focus:border-zinc-800"
               />
             </div>
           )}
         </div>
 
-        {/* Right Side: Chat Refinements Panel (col-span-2) */}
-        <div className="lg:col-span-2 p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl flex flex-col h-[670px] justify-between text-left">
+        {/* Right Side: Refinement Panel (col-span-2) */}
+        <div className="lg:col-span-2 p-6 border border-zinc-850 bg-zinc-900/10 rounded-2xl flex flex-col h-[740px] justify-between text-left relative">
           <div className="space-y-4 flex-1 flex flex-col justify-between overflow-hidden">
-            <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider border-b border-zinc-800/85 pb-3">
-              Refinement Chat pane
-            </h3>
+            <div className="border-b border-zinc-800/85 pb-3">
+              <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
+                Refinement Chat Workspace
+              </h3>
+              <span className="text-[9px] text-zinc-500 block mt-0.5">Iteratively instruct the AI to polish your draft.</span>
+            </div>
 
             {/* Chat message logs */}
-            <div className="flex-grow overflow-y-auto space-y-4 p-1 max-h-[500px]">
+            <div className="flex-grow overflow-y-auto space-y-4 p-1 max-h-[580px]">
               {chatHistory.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center text-zinc-600 text-xs p-4 gap-2 leading-relaxed">
+                <div className="h-full flex flex-col items-center justify-center text-center text-zinc-650 text-xs p-4 gap-2 leading-relaxed">
                   <Activity className="h-8 w-8 text-zinc-800" />
-                  <span>Configure options on the left, generate a master draft first, and refine your social copy here.</span>
+                  <span>Your conversation history will appear here. Generate a draft to start chat edits.</span>
                 </div>
               ) : (
-                chatHistory.map((msg, index) => (
-                  <div
-                    key={index}
-                    className={`p-3 rounded-xl text-xs max-w-[85%] leading-relaxed ${
-                      msg.role === "user"
-                        ? "bg-indigo-600/15 text-indigo-300 border border-indigo-900/40 ml-auto"
-                        : "bg-zinc-950/85 text-zinc-300 border border-zinc-900 mr-auto text-left"
-                    }`}
-                  >
-                    {msg.role === "user" ? (
-                      msg.text
-                    ) : (
-                      <div className="whitespace-pre-wrap line-clamp-8">
-                        {msg.text.substring(0, 300)}...
-                        <span className="text-[10px] text-zinc-500 block mt-2 italic font-semibold">
-                          Draft document updated in main editor pane.
-                        </span>
+                <div className="space-y-4">
+                  {chatHistory.map((msg, index) => (
+                    <div
+                      key={index}
+                      className={`p-3.5 rounded-2xl text-xs max-w-[85%] leading-relaxed ${
+                        msg.role === "user"
+                          ? "bg-indigo-600/15 text-indigo-300 border border-indigo-900/40 ml-auto"
+                          : "bg-zinc-950/85 text-zinc-350 border border-zinc-900 mr-auto text-left"
+                      }`}
+                    >
+                      <div className="whitespace-pre-wrap font-light">
+                        {msg.text}
                       </div>
-                    )}
-                  </div>
-                ))
+                    </div>
+                  ))}
+                  <div ref={chatEndRef} />
+                </div>
               )}
             </div>
           </div>
 
           {/* Form input */}
-          <form onSubmit={handleSendChat} className="flex gap-2 pt-4 border-t border-zinc-850">
+          <form onSubmit={handleSendChat} className="flex gap-2 pt-4 border-t border-zinc-850 mt-4">
             <input
               type="text"
-              placeholder="e.g. Translate to Bangla, Shorten, Add CTA..."
+              placeholder={generatedDraft ? "Make it shorter, Translate to Bangla..." : "Generate draft first..."}
               value={chatPrompt}
               onChange={(e) => setChatPrompt(e.target.value)}
               disabled={refineMutation.isPending || !generatedDraft}
-              className="flex-grow h-10 px-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 placeholder-zinc-650 focus:outline-none focus:border-zinc-800 disabled:opacity-50"
+              className="flex-grow h-10 px-3 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-zinc-300 placeholder-zinc-700 focus:outline-none focus:border-indigo-500 disabled:opacity-40 font-light"
             />
             <button
               type="submit"
               disabled={refineMutation.isPending || !generatedDraft || !chatPrompt.trim()}
               className="h-10 w-10 flex items-center justify-center bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white rounded-xl transition-colors cursor-pointer flex-shrink-0"
             >
-              <Send className="h-4 w-4" />
+              {refineMutation.isPending ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
             </button>
           </form>
         </div>

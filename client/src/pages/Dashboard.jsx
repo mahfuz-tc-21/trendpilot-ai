@@ -12,22 +12,29 @@ import {
   Loader2,
   RefreshCw,
   Facebook,
-  Video
+  Video,
+  Flame,
+  ShieldCheck,
+  Heart,
+  ShieldAlert,
+  ArrowRight,
+  Sparkles,
+  ExternalLink
 } from "lucide-react";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from "recharts";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, PieChart, Pie } from "recharts";
 import dashboardService from "../services/dashboardService.js";
 import { useAuthStore } from "../services/authStore.js";
 import api from "../services/api.js";
 
-// Customized Tooltip for Recharts
-const CustomTooltip = ({ active, payload }) => {
+const COLORS = ["#1877f2", "#ff0000", "#10b981", "#6366f1"];
+
+// Custom Tooltip for Recharts Pie Chart
+const CustomPieTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3 shadow-2xl text-xs">
-        <p className="font-semibold text-zinc-100">{payload[0].name}</p>
-        <p className="text-indigo-400 mt-1">
-          Occurrences: <span className="font-bold">{payload[0].value}</span>
-        </p>
+      <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-2.5 shadow-2xl text-[10px]">
+        <p className="font-semibold text-zinc-150">{payload[0].name}</p>
+        <p className="text-indigo-400 font-bold mt-0.5">{payload[0].value}% Distribution</p>
       </div>
     );
   }
@@ -38,65 +45,23 @@ export default function Dashboard() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  // Queries
   const {
-    data: stats,
-    isLoading: statsLoading,
-    isError: statsError
+    data: db,
+    isLoading,
+    isError,
+    refetch
   } = useQuery({
-    queryKey: ["dashboard-stats"],
+    queryKey: ["dashboard-data"],
     queryFn: dashboardService.getStats
   });
 
-  const {
-    data: trends,
-    isLoading: trendsLoading,
-    isError: trendsError
-  } = useQuery({
-    queryKey: ["dashboard-trends"],
-    queryFn: dashboardService.getTrends
-  });
-
-  const {
-    data: content = [],
-    isLoading: contentLoading,
-    isError: contentError
-  } = useQuery({
-    queryKey: ["dashboard-content"],
-    queryFn: dashboardService.getRecentContent
-  });
-
-  const {
-    data: recommendations = [],
-    isLoading: recsLoading,
-    isError: recsError
-  } = useQuery({
-    queryKey: ["dashboard-recs"],
-    queryFn: dashboardService.getRecentRecommendations
-  });
-
-  const {
-    data: activity,
-    isLoading: activityLoading,
-    isError: activityError
-  } = useQuery({
-    queryKey: ["dashboard-activity"],
-    queryFn: dashboardService.getActivityLogs
-  });
-
-  // Manual Ingestion Scan Mutation
   const scanMutation = useMutation({
     mutationFn: async () => {
       const response = await api.post("/api/scan");
       return response.data;
     },
     onSuccess: () => {
-      // Invalidate all dashboard metrics to pull fresh crawled nodes
-      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-trends"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-content"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-recs"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-activity"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-data"] });
       queryClient.invalidateQueries({ queryKey: ["sources"] });
     }
   });
@@ -112,42 +77,72 @@ export default function Dashboard() {
     scanMutation.mutate();
   };
 
-  const isGlobalError = statsError || trendsError || contentError || recsError || activityError;
+  if (isLoading) {
+    return (
+      <div className="py-24 flex flex-col items-center justify-center gap-3">
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+        <span className="text-xs text-zinc-500 font-medium">Analyzing database, parsing clusters, and syncing metrics...</span>
+      </div>
+    );
+  }
 
-  // Render Skeleton Cards for Stats Loading
-  const renderStatsSkeleton = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
-      {[...Array(5)].map((_, i) => (
-        <div
-          key={i}
-          className="h-28 rounded-2xl border border-zinc-800 bg-zinc-900/10 p-5 space-y-3 animate-pulse"
-        >
-          <div className="flex justify-between">
-            <div className="h-4 w-20 bg-zinc-800 rounded-md"></div>
-            <div className="h-5 w-5 bg-zinc-800 rounded-md"></div>
-          </div>
-          <div className="h-8 w-12 bg-zinc-800 rounded-md"></div>
+  if (isError || !db) {
+    return (
+      <div className="p-12 text-center border border-zinc-850 bg-zinc-900/10 rounded-3xl space-y-4 max-w-lg mx-auto">
+        <AlertTriangle className="h-10 w-10 text-rose-500 mx-auto" />
+        <h3 className="text-sm font-bold text-zinc-200">Failed to Sync Dashboard</h3>
+        <p className="text-xs text-zinc-500 leading-relaxed">
+          Ensure MongoDB is connected and backend servers are running properly.
+        </p>
+        <button onClick={() => refetch()} className="px-4 py-2 bg-zinc-900 border border-zinc-800 text-xs font-bold rounded-xl text-zinc-350 hover:border-zinc-700">
+          Retry Sync
+        </button>
+      </div>
+    );
+  }
+
+  const kpis = db.kpis || {};
+  const hasNoData = kpis.totalSources === 0;
+
+  if (hasNoData) {
+    return (
+      <div className="space-y-8 text-left">
+        <div>
+          <h1 className="text-3xl font-black tracking-tight text-white font-heading">Operational Dashboard</h1>
+          <p className="text-zinc-400 mt-2 text-sm">Overview of active crawls, trends, and content intelligence.</p>
         </div>
-      ))}
-    </div>
-  );
+
+        <div className="p-16 text-center border border-zinc-850 bg-zinc-900/10 rounded-3xl space-y-4 max-w-xl mx-auto">
+          <Globe className="h-12 w-12 text-zinc-700 mx-auto animate-pulse" />
+          <h3 className="text-base font-bold text-zinc-300">No Data Ingested Yet</h3>
+          <p className="text-xs text-zinc-500 leading-relaxed max-w-sm mx-auto">
+            You currently have 0 active content sources or competitor pages. Add sources to initiate scans, calculate topics, and compile trend scores.
+          </p>
+          <div className="pt-2 flex justify-center gap-3">
+            <button onClick={() => navigate("/sources")} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white rounded-xl shadow-lg shadow-indigo-500/10 transition-colors">
+              Add Sources
+            </button>
+            <button onClick={() => navigate("/competitors")} className="px-4 py-2 bg-zinc-900 border border-zinc-800 hover:border-zinc-750 text-xs font-bold text-zinc-350 rounded-xl transition-colors">
+              Add Competitors
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-8">
-      {/* Top Welcome Title */}
+    <div className="space-y-8 text-left">
+      {/* Welcome & Actions */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent font-heading">
-            Overview Dashboard
-          </h1>
-          <p className="text-zinc-400 mt-2 text-sm">
-            Monitor crawls, view trending topics, and explore AI recommendations.
-          </p>
+          <h1 className="text-3xl font-black tracking-tight text-white font-heading">Operational Dashboard</h1>
+          <p className="text-zinc-400 mt-2 text-sm">Overview of active crawls, trends, and content intelligence.</p>
         </div>
         <button
           onClick={handleManualScan}
           disabled={scanMutation.isPending}
-          className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-750 text-white rounded-xl shadow-lg shadow-indigo-500/15 font-semibold text-sm transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-500/15 font-semibold text-sm transition-all duration-200 cursor-pointer disabled:opacity-50"
         >
           {scanMutation.isPending ? (
             <>
@@ -163,424 +158,217 @@ export default function Dashboard() {
         </button>
       </div>
 
-      {/* Global Error Banner */}
-      {isGlobalError && (
-        <div className="p-4 rounded-xl border border-rose-500/10 bg-rose-500/5 text-xs text-rose-400 flex items-center gap-3">
-          <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-          <span>
-            Failed to sync metrics from some backend modules. Please configure environment variables
-            properly and retry.
-          </span>
+      {/* 1. KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+        <div className="rounded-2xl border border-zinc-850 bg-zinc-900/10 p-5 flex flex-col justify-between h-28 hover:border-zinc-800 transition-colors">
+          <div className="flex justify-between items-start text-zinc-500">
+            <span className="text-[10px] font-bold uppercase tracking-wider">Total Sources</span>
+            <Globe className="h-4 w-4 text-indigo-400" />
+          </div>
+          <div className="text-2xl font-black text-white mt-1">{kpis.totalSources || 0}</div>
         </div>
-      )}
-
-      {/* 1. Statistics Cards */}
-      {statsLoading ? (
-        renderStatsSkeleton()
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
-          {/* Total Sources */}
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/10 backdrop-blur-sm p-5 flex flex-col justify-between h-28 hover:border-zinc-700/80 transition-colors">
-            <div className="flex justify-between items-start text-zinc-400">
-              <span className="text-xs font-semibold uppercase tracking-wide">Total Sources</span>
-              <Globe className="h-4.5 w-4.5 text-indigo-400" />
-            </div>
-            <div className="text-2xl font-bold text-white mt-1">{stats?.totalSources ?? 0}</div>
+        <div className="rounded-2xl border border-zinc-850 bg-zinc-900/10 p-5 flex flex-col justify-between h-28 hover:border-zinc-800 transition-colors">
+          <div className="flex justify-between items-start text-zinc-500">
+            <span className="text-[10px] font-bold uppercase tracking-wider">Active</span>
+            <CheckCircle className="h-4 w-4 text-emerald-400" />
           </div>
-
-          {/* Active Sources */}
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/10 backdrop-blur-sm p-5 flex flex-col justify-between h-28 hover:border-zinc-700/80 transition-colors">
-            <div className="flex justify-between items-start text-zinc-400">
-              <span className="text-xs font-semibold uppercase tracking-wide">Active</span>
-              <CheckCircle className="h-4.5 w-4.5 text-emerald-400" />
-            </div>
-            <div className="text-2xl font-bold text-white mt-1">{stats?.activeSources ?? 0}</div>
-          </div>
-
-          {/* Total Content Items */}
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/10 backdrop-blur-sm p-5 flex flex-col justify-between h-28 hover:border-zinc-700/80 transition-colors">
-            <div className="flex justify-between items-start text-zinc-400">
-              <span className="text-xs font-semibold uppercase tracking-wide">Crawled Items</span>
-              <FileText className="h-4.5 w-4.5 text-blue-400" />
-            </div>
-            <div className="text-2xl font-bold text-white mt-1">{stats?.totalContent ?? 0}</div>
-          </div>
-
-          {/* Total Recommendations */}
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/10 backdrop-blur-sm p-5 flex flex-col justify-between h-28 hover:border-zinc-700/80 transition-colors">
-            <div className="flex justify-between items-start text-zinc-400">
-              <span className="text-xs font-semibold uppercase tracking-wide">Ideas Generated</span>
-              <Lightbulb className="h-4.5 w-4.5 text-amber-400" />
-            </div>
-            <div className="text-2xl font-bold text-white mt-1">
-              {stats?.totalRecommendations ?? 0}
-            </div>
-          </div>
-
-          {/* Processed Today */}
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/10 backdrop-blur-sm p-5 flex flex-col justify-between h-28 hover:border-zinc-700/80 transition-colors">
-            <div className="flex justify-between items-start text-zinc-400">
-              <span className="text-xs font-semibold uppercase tracking-wide">Processed Today</span>
-              <Clock className="h-4.5 w-4.5 text-violet-400" />
-            </div>
-            <div className="text-2xl font-bold text-white mt-1">{stats?.processedToday ?? 0}</div>
-          </div>
+          <div className="text-2xl font-black text-white mt-1">{kpis.activeSources || 0}</div>
         </div>
-      )}
-
-      {/* 2. Charts and Trends section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Top Trending Topics Chart */}
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/10 backdrop-blur-sm p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-indigo-400" />
-              Trending Topics
-            </h2>
-            <span className="text-[10px] text-zinc-500 uppercase font-semibold">
-              Aggregated Summary
-            </span>
+        <div className="rounded-2xl border border-zinc-850 bg-zinc-900/10 p-5 flex flex-col justify-between h-28 hover:border-zinc-800 transition-colors">
+          <div className="flex justify-between items-start text-zinc-500">
+            <span className="text-[10px] font-bold uppercase tracking-wider">Crawled Items</span>
+            <FileText className="h-4 w-4 text-blue-400" />
           </div>
-
-          {trendsLoading ? (
-            <div className="h-64 flex items-center justify-center animate-pulse bg-zinc-900/20 rounded-xl">
-              <div className="h-6 w-32 bg-zinc-800 rounded-md"></div>
-            </div>
-          ) : !trends?.topTopics || trends.topTopics.length === 0 ? (
-            <div className="h-64 flex items-center justify-center border border-dashed border-zinc-800 rounded-xl text-xs text-zinc-500">
-              No trending topic data available. Ingest more articles first.
-            </div>
-          ) : (
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={trends.topTopics}
-                  margin={{ top: 10, right: 10, left: -25, bottom: 5 }}
-                >
-                  <XAxis
-                    dataKey="topic"
-                    tick={{ fill: "#71717a", fontSize: 10 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{ fill: "#71717a", fontSize: 10 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(39, 39, 42, 0.3)" }} />
-                  <Bar dataKey="count" radius={[6, 6, 0, 0]} className="cursor-pointer">
-                    {trends.topTopics.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={index % 2 === 0 ? "#4f46e5" : "#6366f1"}
-                        onClick={() => navigate(`/trends?topic=${encodeURIComponent(entry.topic)}`)}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
+          <div className="text-2xl font-black text-white mt-1">{kpis.totalContent || 0}</div>
         </div>
-
-        {/* Opportunity Score Distribution */}
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/10 backdrop-blur-sm p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
-              <Activity className="h-5 w-5 text-amber-400" />
-              Score Distribution
-            </h2>
-            <span className="text-[10px] text-zinc-500 uppercase font-semibold">
-              Opportunity Score
-            </span>
+        <div className="rounded-2xl border border-zinc-850 bg-zinc-900/10 p-5 flex flex-col justify-between h-28 hover:border-zinc-800 transition-colors">
+          <div className="flex justify-between items-start text-zinc-500">
+            <span className="text-[10px] font-bold uppercase tracking-wider">AI Ideas Generated</span>
+            <Lightbulb className="h-4 w-4 text-amber-400" />
           </div>
-
-          {trendsLoading ? (
-            <div className="h-64 flex items-center justify-center animate-pulse bg-zinc-900/20 rounded-xl">
-              <div className="h-6 w-32 bg-zinc-800 rounded-md"></div>
-            </div>
-          ) : !trends?.opportunityScoreDistribution ||
-            trends.opportunityScoreDistribution.length === 0 ? (
-            <div className="h-64 flex items-center justify-center border border-dashed border-zinc-800 rounded-xl text-xs text-zinc-500">
-              No score metrics available. Generate recommendations first.
-            </div>
-          ) : (
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={trends.opportunityScoreDistribution}
-                  margin={{ top: 10, right: 10, left: -25, bottom: 5 }}
-                >
-                  <XAxis
-                    dataKey="range"
-                    tick={{ fill: "#71717a", fontSize: 10 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{ fill: "#71717a", fontSize: 10 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(39, 39, 42, 0.3)" }} />
-                  <Bar dataKey="count" fill="#d97706" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
+          <div className="text-2xl font-black text-white mt-1">{kpis.totalRecommendations || 0}</div>
+        </div>
+        <div className="rounded-2xl border border-zinc-850 bg-zinc-900/10 p-5 flex flex-col justify-between h-28 hover:border-zinc-800 transition-colors">
+          <div className="flex justify-between items-start text-zinc-500">
+            <span className="text-[10px] font-bold uppercase tracking-wider">Processed Today</span>
+            <Clock className="h-4 w-4 text-violet-400" />
+          </div>
+          <div className="text-2xl font-black text-white mt-1">{kpis.processedToday || 0}</div>
         </div>
       </div>
 
-      {/* 3. Content and Recommendations grids */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Latest Recommendations */}
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/10 backdrop-blur-sm p-6 space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
-              <Lightbulb className="h-5 w-5 text-indigo-400" />
-              Latest Content Ideas
-            </h2>
+      {/* Grid widgets */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column: Top Trending (Span 2) */}
+        <div className="lg:col-span-2 space-y-8">
+          {/* A. Top Trending Topics */}
+          <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-3xl space-y-4">
+            <div className="flex justify-between items-center pb-2 border-b border-zinc-900/40">
+              <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                <Flame className="h-4 w-4 text-orange-500 animate-pulse" />
+                Top Trending Topics
+              </h2>
+              <button onClick={() => navigate("/trends")} className="text-[10px] text-indigo-400 font-bold hover:text-indigo-300 flex items-center gap-0.5">
+                Full Details <ArrowRight className="h-3 w-3" />
+              </button>
+            </div>
+            {db.topTrends?.length === 0 ? (
+              <p className="text-xs text-zinc-500 italic py-6">No trends calculated yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {db.topTrends.map((t) => (
+                  <div
+                    key={t.topic}
+                    onClick={() => navigate(`/trends?topic=${encodeURIComponent(t.topic)}`)}
+                    className="p-4 rounded-2xl border border-zinc-850 bg-zinc-950/40 hover:border-indigo-500/50 hover:bg-zinc-900/20 transition-all flex items-center justify-between cursor-pointer"
+                  >
+                    <div>
+                      <p className="text-sm font-bold text-zinc-200">{t.topic}</p>
+                      <div className="flex gap-3 text-[10px] text-zinc-500 mt-1">
+                        <span>{t.mentions} Mentions</span>
+                        <span>•</span>
+                        <span>{t.sourcesCount} Contributing Sources</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs font-bold text-emerald-450">{t.weeklyGrowth}</span>
+                      <div className="text-[10px] text-zinc-500 mt-0.5">Score: <strong className="text-indigo-400">{t.trendScore}</strong></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {recsLoading ? (
-            <div className="space-y-3">
-              {[...Array(3)].map((_, i) => (
-                <div
-                  key={i}
-                  className="h-16 rounded-xl bg-zinc-900/30 border border-zinc-850 animate-pulse"
-                />
-              ))}
-            </div>
-          ) : recommendations.length === 0 ? (
-            <div className="p-8 text-center border border-dashed border-zinc-800 rounded-xl text-xs text-zinc-500">
-              No recommendations generated yet. Scrapes some feeds to begin.
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {recommendations.map((rec) => (
-                <div
-                  key={rec.id}
-                  onClick={() => navigate(`/content/${rec.contentId?._id || rec.contentId}`)}
-                  className="p-4 rounded-xl border border-zinc-850 bg-zinc-950/40 hover:border-indigo-500/50 hover:bg-zinc-900/30 transition-all flex items-center justify-between gap-4 cursor-pointer"
-                >
-                  <div className="space-y-1 truncate">
-                    <p className="text-sm font-semibold text-zinc-200 truncate">
-                      {rec.suggestedTitle}
-                    </p>
-                    <div className="flex flex-wrap gap-2 items-center">
-                      {rec.platform.map((p) => (
-                        <span
-                          key={p}
-                          className="px-1.5 py-0.5 rounded text-[10px] bg-indigo-950 text-indigo-300 font-semibold border border-indigo-900/40 uppercase"
-                        >
-                          {p}
-                        </span>
-                      ))}
-                      <span className="text-[10px] text-zinc-500">{rec.contentFormat}</span>
+
+
+          {/* C. Latest AI Recommendations */}
+          <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-3xl space-y-4">
+            <h2 className="text-sm font-bold text-white uppercase tracking-wider pb-2 border-b border-zinc-900/40 flex items-center gap-1.5">
+              <Sparkles className="h-4 w-4 text-amber-500" />
+              Latest AI Content Recommendations
+            </h2>
+            {db.recentRecommendations?.length === 0 ? (
+              <p className="text-xs text-zinc-500 italic py-6">No recommendations calculated yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {db.recentRecommendations.map((r) => (
+                  <div key={r.id} className="p-4 rounded-2xl border border-zinc-850 bg-zinc-950/40 flex items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <h4 className="text-xs font-extrabold text-zinc-200 leading-snug">{r.topic}</h4>
+                      <div className="flex gap-2 text-[9px] text-zinc-550">
+                        <span className="bg-indigo-500/10 text-indigo-400 px-1.5 py-0.5 rounded uppercase font-bold border border-indigo-500/10">{r.platform}</span>
+                        <span>Generated {new Date(r.generatedTime).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 flex-shrink-0">
+                      <div className="text-right">
+                        <span className="text-[9px] text-zinc-550 block font-bold uppercase">Opp Score</span>
+                        <span className="text-sm font-black text-indigo-400">{r.opportunityScore}</span>
+                      </div>
+                      <button onClick={() => navigate("/recommendations")} className="h-7 px-2.5 rounded-lg bg-zinc-900 border border-zinc-800 text-[10px] font-bold text-zinc-400 hover:border-zinc-700">
+                        Open
+                      </button>
                     </div>
                   </div>
-                  <div className="text-right flex-shrink-0">
-                    <div className="text-xs font-semibold text-indigo-400">
-                      Opp Score:{" "}
-                      <span className="text-white font-bold">{rec.opportunityScore}</span>
-                    </div>
-                    <div className="text-[10px] text-zinc-500">
-                      Trend: <span className="font-semibold text-zinc-400">{rec.trendScore}</span>
-                    </div>
-                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Column: Crawler Health, Distribution, Generated Outputs */}
+        <div className="space-y-8">
+
+
+          {/* E. Platform Distribution */}
+          <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-3xl space-y-4">
+            <h2 className="text-sm font-bold text-white uppercase tracking-wider pb-2 border-b border-zinc-900/40 flex items-center gap-1.5">
+              <Globe className="h-4 w-4 text-indigo-400" />
+              Platform Distribution
+            </h2>
+            <div className="h-44 w-full flex items-center justify-center relative">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Tooltip content={<CustomPieTooltip />} />
+                  <Pie
+                    data={db.platformDistribution}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={50}
+                    outerRadius={70}
+                    paddingAngle={3}
+                    dataKey="value"
+                  >
+                    {db.platformDistribution.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute flex flex-col items-center justify-center">
+                <span className="text-[9px] text-zinc-500 font-bold uppercase">Source Mix</span>
+                <span className="text-xs font-bold text-zinc-200">Channels</span>
+              </div>
+            </div>
+            {/* Legend */}
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[10px] font-semibold text-zinc-400 border-t border-zinc-900 pt-3.5">
+              {db.platformDistribution.map((p, idx) => (
+                <div key={idx} className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: COLORS[idx] }} />
+                  <span>{p.name}: <strong className="text-zinc-200">{p.value}%</strong></span>
                 </div>
               ))}
             </div>
-          )}
-        </div>
+          </div>
 
-        {/* Recent Crawled Content */}
-        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/10 backdrop-blur-sm p-6 space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
-              <FileText className="h-5 w-5 text-indigo-400" />
+          {/* F. Recent Scrapes */}
+          <div className="p-6 border border-zinc-850 bg-zinc-900/10 rounded-3xl space-y-4">
+            <h2 className="text-sm font-bold text-white uppercase tracking-wider pb-2 border-b border-zinc-900/40 flex items-center gap-1.5">
+              <FileText className="h-4 w-4 text-indigo-400" />
               Recent Scrapes
             </h2>
-          </div>
-
-          {contentLoading ? (
-            <div className="space-y-3">
-              {[...Array(3)].map((_, i) => (
-                <div
-                  key={i}
-                  className="h-16 rounded-xl bg-zinc-900/30 border border-zinc-850 animate-pulse"
-                />
-              ))}
-            </div>
-          ) : content.length === 0 ? (
-            <div className="p-8 text-center border border-dashed border-zinc-800 rounded-xl text-xs text-zinc-500">
-              No recent crawls recorded. Click &quot;Scan Feeds Now&quot; above.
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {content.map((item) => (
-                <div
-                  key={item.id || item._id}
-                  onClick={() => navigate(`/content/${item.id || item._id}`)}
-                  className="p-4 rounded-xl border border-zinc-850 bg-zinc-950/40 hover:border-indigo-500/50 hover:bg-zinc-900/30 transition-all flex items-center justify-between gap-4 cursor-pointer"
-                >
-                  <div className="truncate space-y-1">
-                    <p className="text-sm font-semibold text-zinc-200 truncate">{item.title}</p>
-                    <div className="flex items-center gap-2 text-[10px] text-zinc-500">
-                      {item.sourceId?.type === "facebook" ? (
-                        <Facebook className="h-3.5 w-3.5 text-blue-500 flex-shrink-0" />
-                      ) : item.sourceId?.type === "youtube" ? (
-                        <Video className="h-3.5 w-3.5 text-rose-500 flex-shrink-0" />
-                      ) : (
-                        <Globe className="h-3.5 w-3.5 text-indigo-400 flex-shrink-0" />
-                      )}
-                      <span className="text-zinc-400 font-semibold">{item.source?.name || item.sourceId?.name}</span>
-                      <span>•</span>
-                      <span>{new Date(item.publishedAt).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                  <div className="flex-shrink-0">
-                    <span
-                      className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
-                        item.processedStatus === "completed"
-                          ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20"
-                          : item.processedStatus === "processing"
-                            ? "bg-amber-500/15 text-amber-400 border border-amber-500/20"
+            {db.recentScrapes?.length === 0 ? (
+              <p className="text-xs text-zinc-500 italic py-6">No recent crawls recorded.</p>
+            ) : (
+              <div className="space-y-3">
+                {db.recentScrapes.map((item) => {
+                  const Icon = item.platform === "facebook" ? Facebook : (item.platform === "youtube" ? Video : Globe);
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => navigate(`/content/${item.id}`)}
+                      className="p-4 rounded-2xl border border-zinc-850 bg-zinc-950/40 hover:border-indigo-500/50 hover:bg-zinc-900/20 transition-all flex items-center justify-between gap-4 cursor-pointer text-left"
+                    >
+                      <div className="space-y-1 truncate">
+                        <p className="text-xs font-bold text-zinc-200 truncate leading-snug">
+                          {item.title}
+                        </p>
+                        <div className="flex items-center gap-1.5 text-[9px] text-zinc-555">
+                          <Icon className="h-3 w-3 text-zinc-400 flex-shrink-0" />
+                          <span className="font-semibold text-zinc-400">{item.sourceName}</span>
+                          <span>•</span>
+                          <span>{new Date(item.publishedAt || item.createdAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                      <div className="flex-shrink-0">
+                        <span className={`px-2 py-0.5 rounded-full text-[8px] font-extrabold uppercase ${
+                          item.processedStatus === "completed"
+                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/15"
                             : item.processedStatus === "failed"
-                              ? "bg-rose-500/15 text-rose-400 border border-rose-500/20"
-                              : "bg-zinc-800 text-zinc-400 border border-zinc-700"
-                      }`}
-                    >
-                      {item.processedStatus}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+                              ? "bg-rose-500/10 text-rose-400 border border-rose-500/15"
+                              : "bg-zinc-900 text-zinc-500 border border-zinc-850"
+                        }`}>
+                          {item.processedStatus}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-
-      {/* 4. Activity Timeline */}
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/10 backdrop-blur-sm p-6 space-y-6">
-        <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
-          <Activity className="h-5 w-5 text-indigo-400" />
-          Recent Activity Timeline
-        </h2>
-
-        {activityLoading ? (
-          <div className="space-y-4">
-            {[...Array(2)].map((_, i) => (
-              <div
-                key={i}
-                className="h-14 rounded-xl bg-zinc-900/30 border border-zinc-850 animate-pulse"
-              />
-            ))}
-          </div>
-        ) : !activity ||
-          (activity.recentCrawls.length === 0 &&
-            activity.aiProcessingEvents.length === 0 &&
-            activity.recommendationEvents.length === 0) ? (
-          <div className="p-12 text-center border border-dashed border-zinc-800 rounded-xl text-xs text-zinc-500">
-            No activity logged yet. Add sources and trigger crawls.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Column 1: Crawl Audits */}
-            <div className="space-y-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 pb-2 border-b border-zinc-800">
-                Crawls & Syncs
-              </h3>
-              {activity.recentCrawls.length === 0 ? (
-                <p className="text-xs text-zinc-600">No crawl activity recorded</p>
-              ) : (
-                <div className="space-y-2">
-                  {activity.recentCrawls.slice(0, 4).map((c) => (
-                    <div
-                      key={c.id}
-                      className="p-3 rounded-lg bg-zinc-950/40 border border-zinc-850 text-xs"
-                    >
-                      <div className="flex justify-between items-center">
-                        <span className="font-semibold text-zinc-300 truncate max-w-28">
-                          {c.sourceName}
-                        </span>
-                        <span
-                          className={`px-1 py-0.5 rounded text-[8px] font-bold uppercase ${c.status === "completed" ? "bg-emerald-950 text-emerald-400" : "bg-rose-955 text-rose-400"}`}
-                        >
-                          {c.status}
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-zinc-500 mt-1">
-                        {new Date(c.timestamp).toLocaleString()}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Column 2: AI Summarizations */}
-            <div className="space-y-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 pb-2 border-b border-zinc-800">
-                AI Summaries
-              </h3>
-              {activity.aiProcessingEvents.length === 0 ? (
-                <p className="text-xs text-zinc-600">No summarization events recorded</p>
-              ) : (
-                <div className="space-y-2">
-                  {activity.aiProcessingEvents.slice(0, 4).map((a) => (
-                    <div
-                      key={a.id}
-                      className="p-3 rounded-lg bg-zinc-950/40 border border-zinc-850 text-xs"
-                    >
-                      <p className="font-semibold text-zinc-300 truncate">{a.title}</p>
-                      <div className="flex justify-between items-center mt-1">
-                        <span className="text-[8px] text-emerald-400 uppercase font-semibold">
-                          Analyzed
-                        </span>
-                        <span className="text-[10px] text-zinc-500">
-                          {new Date(a.timestamp).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Column 3: Recommendations */}
-            <div className="space-y-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 pb-2 border-b border-zinc-800">
-                Creative Ideas
-              </h3>
-              {activity.recommendationEvents.length === 0 ? (
-                <p className="text-xs text-zinc-600">No recommendations recorded</p>
-              ) : (
-                <div className="space-y-2">
-                  {activity.recommendationEvents.slice(0, 4).map((r) => (
-                    <div
-                      key={r.id}
-                      className="p-3 rounded-lg bg-zinc-950/40 border border-zinc-850 text-xs"
-                    >
-                      <p className="font-semibold text-zinc-300 truncate">{r.title}</p>
-                      <div className="flex items-center gap-1.5 mt-1">
-                        {r.platforms.map((p) => (
-                          <span
-                            key={p}
-                            className="px-1 py-0.5 rounded text-[8px] bg-indigo-950 text-indigo-400 font-semibold border border-indigo-900/40 uppercase"
-                          >
-                            {p}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
