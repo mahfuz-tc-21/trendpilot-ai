@@ -368,11 +368,11 @@ Ensure `CORS_ORIGIN` is configured in production variables to match the frontend
 
 | Dashboard Overview | Trend Intelligence Panel |
 |:---:|:---:|
-| ![Dashboard Layout](https://placehold.co/600x400/18181b/ffffff?text=Dashboard+Overview) | ![Trends Page](https://placehold.co/600x400/18181b/ffffff?text=Trend+Intelligence) |
+| ![Dashboard Layout](assets/dashboard_overview.png) | ![Trends Page](assets/trend_intelligence.png) |
 
 | Competitor Comparison | AI Studio Editor |
 |:---:|:---:|
-| ![Competitor Intelligence](https://placehold.co/600x400/18181b/ffffff?text=Competitor+Intelligence) | ![AI Studio](https://placehold.co/600x400/18181b/ffffff?text=AI+Studio) |
+| ![Competitor Intelligence](assets/competitor_comparison.png) | ![AI Studio](assets/ai_studio.png) |
 
 ---
 
