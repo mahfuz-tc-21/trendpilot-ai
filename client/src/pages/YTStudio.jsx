@@ -107,8 +107,11 @@ export default function YTStudio() {
   const generateMutation = useMutation({
     mutationFn: async ({ format, constraints }) => {
       const response = await api.post("/api/studio/generate", {
+        inputType: "paste_content",
+        pastedContent: subtitleText,
+        contentId: selectedVideoId || null,
         format,
-        instructions: `Subtitle/Transcript Context:\n"""\n${subtitleText}\n"""\n\nCreator instructions/constraints:\n${constraints}`
+        instructions: constraints || ""
       });
       return response.data.data;
     },
