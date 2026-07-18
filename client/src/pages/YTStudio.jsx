@@ -27,6 +27,8 @@ export default function YTStudio() {
   const [subtitleText, setSubtitleText] = useState("");
   const [audioFile, setAudioFile] = useState(null);
   const [transcribing, setTranscribing] = useState(false);
+  const [isDragOverSubtitle, setIsDragOverSubtitle] = useState(false);
+  const [isDragOverAudio, setIsDragOverAudio] = useState(false);
 
   // Custom premium error states
   const [showLimitModal, setShowLimitModal] = useState(false);
@@ -188,8 +190,32 @@ export default function YTStudio() {
               )}
             </div>
 
-            <div className="relative border border-dashed border-zinc-800 hover:border-zinc-700 bg-zinc-950/40 rounded-xl p-6 text-center cursor-pointer transition-colors"
-                 onClick={() => fileInputRef.current?.click()}>
+            <div 
+              className={`relative border border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-200 ${
+                isDragOverSubtitle 
+                  ? "border-indigo-500 bg-indigo-500/10 shadow-[0_0_15px_rgba(99,102,241,0.2)]" 
+                  : "border-zinc-800 hover:border-zinc-700 bg-zinc-950/40"
+              }`}
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsDragOverSubtitle(true);
+              }}
+              onDragLeave={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsDragOverSubtitle(false);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsDragOverSubtitle(false);
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                  handleSubtitleFile(e.dataTransfer.files[0]);
+                }
+              }}
+            >
               <input 
                 type="file" 
                 ref={fileInputRef} 
@@ -202,8 +228,34 @@ export default function YTStudio() {
               <span className="text-[10px] text-zinc-500 block mt-1">Formats: .sbv, .srt, .txt</span>
             </div>
 
-            <div className="relative border border-dashed border-zinc-800 hover:border-zinc-700 bg-zinc-950/40 rounded-xl p-6 text-center cursor-pointer transition-colors"
-                 onClick={() => audioInputRef.current?.click()}>
+            <div 
+              className={`relative border border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-200 ${
+                isDragOverAudio 
+                  ? "border-indigo-500 bg-indigo-500/10 shadow-[0_0_15px_rgba(99,102,241,0.2)]" 
+                  : "border-zinc-800 hover:border-zinc-700 bg-zinc-950/40"
+              }`}
+              onClick={() => audioInputRef.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsDragOverAudio(true);
+              }}
+              onDragLeave={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsDragOverAudio(false);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsDragOverAudio(false);
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                  const file = e.dataTransfer.files[0];
+                  setAudioFile(file);
+                  setSystemOutput(`Loaded audio payload: ${file.name}`);
+                }
+              }}
+            >
               <input 
                 type="file" 
                 ref={audioInputRef} 
